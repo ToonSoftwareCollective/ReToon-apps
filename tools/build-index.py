@@ -3,13 +3,14 @@
 """Check every app folder and pack it for the Toons.
 
     tools/build-index.py <out dir>
+    tools/build-index.py --check <app folder>
 
 Writes <id>-<version>.tar.gz per app (the app's files, without its folder),
 index.json (the list the web interface shows) and index.txt (the same as
 lines "<id> <version> <api> <sha256> <file>", for the Toon's shell script).
 The archives are packed the same way every time, so an app that did not
 change keeps its checksum. Stops with an error on the first app that is not
-right.
+right. With --check, only checks the one app folder, which can be anywhere.
 """
 import gzip
 import hashlib
@@ -32,7 +33,7 @@ def fail(app, msg):
 	sys.exit(f"{app}: {msg}")
 
 
-def check(folder, m):
+def check(folder, m, base=ROOT):
 	for k in REQUIRED:
 		if k not in m:
 			fail(folder, f'manifest.json has no "{k}"')
@@ -44,7 +45,7 @@ def check(folder, m):
 		fail(folder, '"version" must look like "1.2.3"')
 	if not isinstance(m["api"], int) or m["api"] < 1:
 		fail(folder, '"api" must be a whole number from 1')
-	main = os.path.join(ROOT, folder, m["main"])
+	main = os.path.join(base, folder, m["main"])
 	if os.path.dirname(os.path.normpath(m["main"])) or not os.path.isfile(main):
 		fail(folder, f'"main" ({m["main"]}) is not a file in the folder')
 	for s in m.get("settings", []):
@@ -75,7 +76,23 @@ def pack(folder):
 	return out.getvalue()
 
 
+def load(path, folder):
+	try:
+		with open(os.path.join(path, "manifest.json"), encoding="utf-8") as fh:
+			return json.load(fh)
+	except OSError:
+		fail(folder, "has no manifest.json")
+	except ValueError as e:
+		fail(folder, f"manifest.json is not valid JSON: {e}")
+
+
 def main():
+	if len(sys.argv) == 3 and sys.argv[1] == "--check":
+		path = os.path.abspath(sys.argv[2])
+		folder = os.path.basename(path)
+		check(folder, load(path, folder), os.path.dirname(path))
+		print(f"{folder}: ok")
+		return
 	if len(sys.argv) != 2:
 		sys.exit(__doc__)
 	out = sys.argv[1]
@@ -85,11 +102,7 @@ def main():
 		mf = os.path.join(ROOT, folder, "manifest.json")
 		if folder.startswith(".") or not os.path.isfile(mf):
 			continue
-		try:
-			with open(mf, encoding="utf-8") as fh:
-				m = json.load(fh)
-		except ValueError as e:
-			fail(folder, f"manifest.json is not valid JSON: {e}")
+		m = load(os.path.join(ROOT, folder), folder)
 		check(folder, m)
 		data = pack(folder)
 		if len(data) > MAX_SIZE:

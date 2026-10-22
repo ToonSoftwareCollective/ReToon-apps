@@ -1,0 +1,15 @@
+{
+	"id": "example-app",
+	"name": "Example",
+	"version": "1.0.0",
+	"api": 2,
+	"main": "main.js",
+	"description": "A starting point for your own app: one Home Assistant entity on the card, and the temperature for the next 24 hours from Open-Meteo on the full screen.",
+	"author": "ReToon",
+	"tile": { "height": 150 },
+	"settings": [
+		{ "key": "entity", "label": "Entity to show", "type": "entity", "default": "" },
+		{ "key": "latitude", "label": "Latitude for the weather", "type": "number", "default": 52.37 },
+		{ "key": "longitude", "label": "Longitude for the weather", "type": "number", "default": 4.9 }
+	]
+}

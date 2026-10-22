@@ -1,6 +1,7 @@
 # Checks every app and publishes them for the Toons.
 #
-# - Pull request: only the checks (manifest, JavaScript syntax, packing).
+# - Pull request: only the checks (manifest, JavaScript syntax, packing; the
+#   example app in docs/ is checked too, but not published).
 # - Push to main, or run by hand: also publishes. Every app becomes
 #   <id>-<version>.tar.gz, with index.json listing them, all in the release
 #   "apps". The Toons read
@@ -29,10 +30,11 @@ jobs:
 
       - name: Check and pack
         run: |
-          for f in */manifest.json; do
+          for f in */manifest.json docs/example-app/manifest.json; do
             main=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["main"])' "$f")
             node --check "$(dirname "$f")/$main"
           done
+          python3 tools/build-index.py --check docs/example-app
           python3 tools/build-index.py dist
           cat dist/index.json
 
