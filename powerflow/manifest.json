@@ -1,0 +1,22 @@
+{
+	"id": "powerflow",
+	"name": "Power flow",
+	"version": "1.0.1",
+	"api": 2,
+	"main": "main.js",
+	"description": "Shows where the power in your home comes from and goes to. Pick Home Assistant entities that give power in W or kW. A positive value flows from the entity to the middle (for example solar panels producing, power taken from the grid, a battery discharging); a negative value flows from the middle to the entity. Use \"Reverse\" for a sensor that counts the other way round. Home, at the top, is the sum of all of them. The more power, the faster the dots move.",
+	"author": "Igor Ybema",
+	"tile": { "height": 380 },
+	"settings": [
+		{ "key": "sources", "label": "Power entities", "type": "entities", "max": 8, "units": ["W", "kW"], "addLabel": "Add an entity",
+		  "fields": [
+			{ "key": "name", "label": "Name (empty: the name in Home Assistant)", "type": "text" },
+			{ "key": "icon", "label": "Icon, for example mdi:solar-power (empty: automatic)", "type": "text" },
+			{ "key": "invert", "label": "Reverse (negative means towards the entity)", "type": "bool" }
+		  ],
+		  "default": [] },
+		{ "key": "homeName", "label": "Name of the middle-top entry", "type": "text", "default": "Home" },
+		{ "key": "fullSpeed", "label": "Power at full speed (W)", "type": "number", "default": 5000 },
+		{ "key": "idle", "label": "Below this the dots stand still (W)", "type": "number", "default": 5 }
+	]
+}

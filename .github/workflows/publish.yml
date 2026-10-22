@@ -1,0 +1,50 @@
+# Checks every app and publishes them for the Toons.
+#
+# - Pull request: only the checks (manifest, JavaScript syntax, packing).
+# - Push to main, or run by hand: also publishes. Every app becomes
+#   <id>-<version>.tar.gz, with index.json listing them, all in the release
+#   "apps". The Toons read
+#   https://github.com/ToonSoftwareCollective/ReToon-apps/releases/download/apps/index.json
+#   Files of versions that are no longer listed are removed from the release.
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check and pack
+        run: |
+          for f in */manifest.json; do
+            main=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["main"])' "$f")
+            node --check "$(dirname "$f")/$main"
+          done
+          python3 tools/build-index.py dist
+          cat dist/index.json
+
+      - name: Publish
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view apps >/dev/null 2>&1 ||
+            gh release create apps --title "Apps" --latest=false \
+              --notes "The apps for ReToon. The Toons read index.json from here; see the README."
+          gh release upload apps dist/* --clobber
+          for a in $(gh release view apps --json assets --jq '.assets[].name'); do
+            [ -e "dist/$a" ] || gh release delete-asset apps "$a" --yes
+          done

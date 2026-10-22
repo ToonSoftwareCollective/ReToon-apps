@@ -1,0 +1,24 @@
+{
+	"id": "spotenergy",
+	"name": "SpotEnergy",
+	"version": "3.0.0",
+	"api": 1,
+	"main": "main.js",
+	"description": "Dynamic electricity prices for the Netherlands (ENTSO-E, easyEnergy as backup), with taxes, as a tile and a full-screen graph.",
+	"author": "Igor Ybema",
+	"tile": { "height": 190 },
+	"settings": [
+		{ "key": "entsoeToken", "label": "ENTSO-E API token", "type": "secret", "default": "" },
+		{ "key": "includeTax", "label": "Include taxes", "type": "bool", "default": true },
+		{ "key": "tariffEnergyTax", "label": "Energy tax (EUR/kWh, without VAT)", "type": "number", "default": 0.09161157 },
+		{ "key": "tariffODETax", "label": "ODE (EUR/kWh)", "type": "number", "default": 0 },
+		{ "key": "tariffBonus", "label": "Supplier mark-up (EUR/kWh)", "type": "number", "default": 0 },
+		{ "key": "tariffVAT", "label": "VAT (%)", "type": "number", "default": 21 },
+		{ "key": "lookbackHours", "label": "Hours back", "type": "number", "default": 2 },
+		{ "key": "lookforwardHours", "label": "Hours ahead", "type": "number", "default": 18 },
+		{ "key": "scaleGraph", "label": "Scale the graph to min-max", "type": "bool", "default": true },
+		{ "key": "algoMedian", "label": "Quartiles by median (off: by average)", "type": "bool", "default": true },
+		{ "key": "coloredBars", "label": "Coloured bars", "type": "bool", "default": true },
+		{ "key": "showQuarterHour", "label": "15-minute bars on the full screen", "type": "bool", "default": false }
+	]
+}
