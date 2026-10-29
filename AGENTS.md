@@ -91,6 +91,13 @@ retoon.fetch(url, opts)    Promise<{ status, text }>; opts: { method, headers, b
                            http/https; body is a string; timeout in s (1-120, default 30);
                            resolves for every HTTP status, rejects only without an answer;
                            text only (no binary), at most 4 MB; no response headers
+retoon.notify(msg, fn)     banner at the top or popup in the middle; msg: { title, message,
+                           level: "info"|"warning"|"alert", icon: "mdi:x", style: "banner"|"popup",
+                           timeout: s (0 = until tapped), buttons: [up to 3 labels], sound:
+                           "none"|"beep"|"chime"|"alarm"|wav name, volume: 0-100, tag, dismiss,
+                           wake }; fn(label) after a button, fn(null) when closed without one.
+                           Same tag = replaces the old message. Returns false if msg is no object
+retoon.sound(name, volume) "beep" | "chime" | wav name; volume 0-100 optional
 retoon.app                 { id, name, version }
 retoon.log(...args)        log line "app <id>: ..." (console.log is the same)
 setTimeout, setInterval, clearTimeout, clearInterval
@@ -149,6 +156,8 @@ cards are dark grey (`card`).
   `height`.
 - 2: adds `retoon.watch`, `retoon.state`, `el.icon`, `el.circle`, `el.line`,
   `el.flow`, `el.set`.
+- 3 (ReToon 1.15): adds `retoon.notify`, `retoon.sound`. Use a `tag` for
+  messages that can repeat, and sounds only for what needs attention.
 
 ## The shape of an app
 
