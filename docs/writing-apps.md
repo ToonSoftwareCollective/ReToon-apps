@@ -123,9 +123,42 @@ be drawn.
 | `retoon.watch(ids, fn)` | Keep these entities up to date: Home Assistant entities, `mqtt.*` and the Toon's own `toon.*`. `fn(id)` is called when the state of one changes. A new call replaces the list |
 | `retoon.state(id)` | `{ state, value, unit, name, attributes }`, or `null` when unknown. `state` is the text, `value` the state as a number (`NaN` if it is not one), `unit` the unit or `null`, `name` the friendly name. Only entities in a `watch` list are kept up to date |
 | `retoon.fetch(url, opts)` | http or https. `opts`: `method`, `headers` (object), `body` (string), `timeout` (seconds, 1–120, default 30). A Promise of `{ status, text }`. It resolves for every HTTP status (check `status`) and rejects only when there was no answer. At most 4 MB |
+| `retoon.notify(msg, fn)` | Show a message on the Toon: a banner at the top, or a popup in the middle (see [Notifications](#notifications)). `fn(button)` is called with the label of the tapped button, or with `null` when the message was closed without one. Returns `false` when `msg` is not an object |
+| `retoon.sound(name, volume)` | Play `"beep"`, `"chime"` or a WAV file from the Toon's sound folder. `volume` 0–100 is optional (default: the Toon's sound setting) |
 | `retoon.app` | `{ id, name, version }` |
 | `retoon.log(...)`, `console.log(...)` | Print to the screen program's output, see [trying-an-app.md](trying-an-app.md) |
 | `setTimeout`, `setInterval`, `clearTimeout`, `clearInterval` | As in a browser |
+
+### Notifications
+
+`retoon.notify` takes the same message as Home Assistant sends to the Toon:
+
+```js
+retoon.notify({ title: "Cheap hour", message: "Electricity is cheapest from 14:00.",
+	icon: "mdi:flash", tag: "cheap" });
+
+retoon.notify({ title: "Bin day", message: "Put the green bin out tonight.",
+	level: "warning", buttons: ["Done", "Remind me later"], tag: "bins" },
+	button => retoon.log("answer: " + button));	// "Done", "Remind me later" or null
+```
+
+| Field | |
+|---|---|
+| `title`, `message` | The text; a message alone is fine |
+| `level` | `"info"` (default), `"warning"` or `"alert"`: colour, icon and default sound |
+| `icon` | An `mdi:` icon instead of the one for the level |
+| `style` | `"banner"` or `"popup"`. Default: a popup for an alert, with buttons or with `timeout` 0, a banner otherwise |
+| `timeout` | Seconds until it goes by itself, 0 = until tapped. Default 10 for a banner, 0 for a popup |
+| `buttons` | Up to three labels (popup only) |
+| `sound` | `"none"`, `"beep"`, `"chime"`, `"alarm"` (repeats while the popup is open) or a WAV file name. Default: none for info, beep for a warning, chime for an alert |
+| `volume` | 0–100 |
+| `tag` | A new message with the same tag replaces the old one; `{ tag: "bins", dismiss: true }` takes it away |
+| `wake` | `false`: a dimmed screen stays dimmed |
+
+A banner that is tapped opens as a popup. Use a `tag` for anything that can
+come again, so the Toon shows the newest one instead of a pile, and keep
+sounds for what really needs attention: the Toon hangs on a wall in
+someone's living room.
 
 ### Drawing
 
@@ -210,6 +243,7 @@ start it.
 |---|---|
 | 1 | `retoon.tile`, `screen`, `update`, `settings`, `onSettings`, `fetch`, `app`, `log`, timers; `el.box`, `text`, `button`, `onClick`, `width`, `height` |
 | 2 | `retoon.watch`, `retoon.state`; `el.icon`, `el.circle`, `el.line`, `el.flow`, `el.set` |
+| 3 | `retoon.notify`, `retoon.sound` (ReToon 1.15 and later) |
 
 ## Trying it, and publishing it
 
