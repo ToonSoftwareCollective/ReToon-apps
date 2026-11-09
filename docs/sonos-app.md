@@ -21,8 +21,8 @@ speakers (*Groep samenstellen*), shows the volume and the sources of the group
    calls them.
 2. ReToon connected to Home Assistant, so the app can see the speakers'
    states (the same connection every card that shows an entity uses).
-3. A **long-lived access token**: in Home Assistant open your profile, tab
-   **Security**, and under *Long-lived access tokens* press *Create token*.
+3. A **long-lived access token**: open <https://my.home-assistant.io/redirect/profile_security/> (it asks once for the address of your Home Assistant and goes to your profile, tab
+   **Security**), and under *Long-lived access tokens* press *Create token*.
    Copy it at once, Home Assistant shows it only one time.
    A token has the rights of the user who made it, so you may prefer to make a
    separate user for the Toon first and create the token there; it only needs

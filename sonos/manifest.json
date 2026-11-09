@@ -14,7 +14,7 @@
 		  ],
 		  "default": [] },
 		{ "key": "haUrl", "label": "Home Assistant address, for example http://192.168.1.10:8123", "type": "text", "default": "" },
-		{ "key": "token", "label": "Long-lived access token", "type": "secret", "default": "" },
+		{ "key": "token", "label": "Long-lived access token (create one at my.home-assistant.io/redirect/profile_security)", "type": "secret", "default": "" },
 		{ "key": "step", "label": "Volume step (%)", "type": "number", "default": 5 }
 	]
 }
