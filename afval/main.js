@@ -1,7 +1,7 @@
 // Afvalkalender for ReToon. The card shows the next collection; the full screen
-// shows the whole year. The next dates come from sensors that give
+// shows the next months. The next dates come from sensors that give
 // the days until the next collection (attribute Days_until, date in Sort_date as
-// yyyymmdd). The rest of the year comes from a Home Assistant calendar entity
+// yyyymmdd). The following months come from a Home Assistant calendar entity
 // (optional): that needs the Home Assistant address and a long-lived token,
 // because an app can only read states and has to call the REST API for events.
 
@@ -135,7 +135,7 @@ function drawTile(el) {
 	for (let i = shown; i < list.length && y + 44 <= el.height; i++, y += 44) row(el, list[i], y, el.width);
 }
 
-// ---- full screen: the year
+// ---- full screen: the next months
 
 // "yyyy-mm-dd" -> [stream index]: the calendar plus the next date of every sensor
 function daysMap() {
@@ -146,30 +146,32 @@ function daysMap() {
 	return map;
 }
 
+// the next 6 months, starting with the current one: 3 columns x 2 rows
+const MONTHS_SHOWN = 6;
+
 function drawYear(el, W, H) {
 	const now = new Date();
-	const year = now.getFullYear();
-	const today = key(year, now.getMonth(), now.getDate());
+	const today = key(now.getFullYear(), now.getMonth(), now.getDate());
 	const map = daysMap();
-	const cols = 4, mw = Math.floor(W / cols), cw = 29, gap = 14;
-	// the rows of months share the height of the card: cells of 15 to 20 px
-	const mh = Math.floor((H + gap) / 3), ch = Math.max(15, Math.min(20, Math.floor((mh - 22 - gap) / 6))), top = 0;
+	const cols = 3, mw = Math.floor(W / cols), cw = 40, gap = 16;
+	// the two rows of months share the height of the card
+	const mh = Math.floor((H + gap) / 2), ch = Math.max(20, Math.min(34, Math.floor((mh - 30 - gap) / 6)));
 	const colors = streams().map(s => colorOf(s, nameOf(s)));
-	for (let m = 0; m < 12; m++) {
-		const x0 = (m % cols) * mw + Math.floor((mw - 7 * cw) / 2), y0 = top + Math.floor(m / cols) * mh;
-		el.text(MONTHS[m], { x: x0, y: y0, font: "small", color: m === now.getMonth() ? "accent" : "muted" });
-		const first = (new Date(year, m, 1).getDay() + 6) % 7;
+	for (let i = 0; i < MONTHS_SHOWN; i++) {
+		const date = new Date(now.getFullYear(), now.getMonth() + i, 1), year = date.getFullYear(), m = date.getMonth();
+		const x0 = (i % cols) * mw + Math.floor((mw - 7 * cw) / 2), y0 = Math.floor(i / cols) * mh;
+		el.text(MONTHS[m] + (year !== now.getFullYear() ? " " + year : ""), { x: x0, y: y0, color: i === 0 ? "accent" : "muted" });
+		const first = (date.getDay() + 6) % 7;
 		const count = new Date(year, m + 1, 0).getDate();
 		for (let d = 1; d <= count; d++) {
-			const p = first + d - 1, cx = x0 + (p % 7) * cw, cy = y0 + 22 + Math.floor(p / 7) * ch;
+			const p = first + d - 1, cx = x0 + (p % 7) * cw, cy = y0 + 30 + Math.floor(p / 7) * ch;
 			const k = key(year, m, d), on = map[k];
 			if (on) {
 				const part = Math.floor((cw - 2) / on.length);
-				on.forEach((si, j) => el.box({ x: cx + 1 + j * part, y: cy, w: part, h: ch - 2, bg: colors[si] || "accent", radius: 3 }));
+				on.forEach((si, j) => el.box({ x: cx + 1 + j * part, y: cy, w: part, h: ch - 3, bg: colors[si] || "accent", radius: 4 }));
 			}
-			const isToday = k === today;
-			if (isToday) el.box({ x: cx, y: cy - 1, w: cw - 1, h: ch, radius: 4, border: 2, borderColor: "text" });
-			el.text(String(d), { x: cx, y: cy + 1, w: cw - 1, textAlign: "center", font: "small",
+			if (k === today) el.box({ x: cx, y: cy - 1, w: cw - 1, h: ch - 1, radius: 5, border: 2, borderColor: "text" });
+			el.text(String(d), { x: cx, y: cy + Math.floor((ch - 3 - 19) / 2), w: cw - 1, textAlign: "center",
 				color: on ? "background" : k < today ? "muted" : "text" });
 		}
 	}
@@ -189,7 +191,7 @@ function drawScreen(root) {
 		root.text(clip(n, 14), { x: lx + 20, y: 4, font: "small" });
 		lx += 20 + Math.min(14, n.length) * 9 + 22;
 	});
-	// the card under it, with the year on it
+	// the card under it, with the months on it
 	const W = root.width - 24, H = root.height - TOP - 24;
 	const el = root.box({ x: 0, y: TOP, w: root.width, h: root.height - TOP, bg: "card", radius: 12 }).box({ x: 12, y: 12, w: W, h: H });
 	drawYear(el, W, H);
@@ -201,9 +203,10 @@ function drawScreen(root) {
 async function loadCalendar() {
 	const cal = S().calendar, url = (S().haUrl || "").replace(/\/+$/, "");
 	if (!cal || !url || !S().token) { events = {}; calError = ""; return; }
-	const y = new Date().getFullYear();
+	const n = new Date(), from = new Date(n.getFullYear(), n.getMonth(), 1), to = new Date(n.getFullYear(), n.getMonth() + MONTHS_SHOWN + 1, 1);
+	const iso = d => key(d.getFullYear(), d.getMonth(), 1) + "T00:00:00Z";
 	try {
-		const r = await retoon.fetch(url + "/api/calendars/" + cal + "?start=" + y + "-01-01T00:00:00Z&end=" + (y + 1) + "-01-01T00:00:00Z", {
+		const r = await retoon.fetch(url + "/api/calendars/" + cal + "?start=" + iso(from) + "&end=" + iso(to), {
 			headers: { "Authorization": "Bearer " + S().token }, timeout: 20 });
 		if (r.status === 401) throw new Error("token geweigerd");
 		if (r.status >= 300) throw new Error("HTTP " + r.status);

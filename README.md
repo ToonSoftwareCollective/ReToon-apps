@@ -6,7 +6,7 @@ and optionally a full screen that opens when the card is tapped.
 
 | App | What it does |
 |---|---|
-| [afval](afval) | When each kind of waste is collected: the next collection on a card, the whole year on the full screen ([setup](docs/afval-app.md)) |
+| [afval](afval) | When each kind of waste is collected: the next collection on a card, the next six months on the full screen ([setup](docs/afval-app.md)) |
 | [spotenergy](spotenergy) | Dynamic electricity prices for the Netherlands, with taxes, as a card and a full-screen graph |
 | [powerflow](powerflow) | Where the power in your home comes from and goes to, with moving dots |
 
