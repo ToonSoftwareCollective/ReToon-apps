@@ -1,0 +1,22 @@
+{
+	"id": "afval",
+	"name": "Afvalkalender",
+	"version": "1.0.0",
+	"api": 2,
+	"main": "main.js",
+	"description": "Shows when each kind of waste is collected, from Home Assistant sensors that count the days until the next collection (attribute Days_until, as made by the Afvalbeheer integration). The card shows the next collection; tap it for the whole year. Pick one sensor per kind of waste: colour and icon follow the name (gft, pmd, restafval, papier, ...) unless you set them. For the whole year also pick the calendar of the integration and enter the address of Home Assistant and a long-lived access token (Home Assistant profile, Security), because apps can only read states and must call the Home Assistant REST API to read a calendar.",
+	"author": "Stefan Verstege (newmedia)",
+	"tile": { "height": 150 },
+	"settings": [
+		{ "key": "streams", "label": "Waste sensors", "type": "entities", "max": 6, "addLabel": "Add a kind of waste",
+		  "fields": [
+			{ "key": "name", "label": "Name (empty: the name in Home Assistant)", "type": "text" },
+			{ "key": "icon", "label": "Icon, for example mdi:leaf (empty: by name)", "type": "text" },
+			{ "key": "color", "label": "Colour: green, blue, orange, red, grey, brown, purple, yellow or #rrggbb (empty: by name)", "type": "text" }
+		  ],
+		  "default": [] },
+		{ "key": "calendar", "label": "Waste calendar for the whole year (optional)", "type": "entity" },
+		{ "key": "haUrl", "label": "Home Assistant address for the calendar, for example http://192.168.1.10:8123", "type": "text", "default": "" },
+		{ "key": "token", "label": "Long-lived access token (create one at my.home-assistant.io/redirect/profile_security)", "type": "secret", "default": "" }
+	]
+}
