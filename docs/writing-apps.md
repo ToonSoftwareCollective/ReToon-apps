@@ -225,6 +225,7 @@ Positions are in pixels of the screen as if it is 1024 wide; on a Toon 1
 | `el.line([x1, y1, x2, y2, ...], opts)` | A line through these points (at least two); `width` (default 2), `color`, `opacity` |
 | `el.flow(opts)` | Dots moving from `x1, y1` to `x2, y2` by themselves; `speed` in pixels a second (below 0 the other way, 0 still), `gap` (30), `size` (8), `color` |
 | `el.time(opts, fn)` | A time picker: an hour wheel and a minute wheel the user scrolls. `value` (`"HH:MM"`), `step` (minutes between the minute wheel's entries, a divisor of 60, default 1), `rows` (visible rows, 1–7, default 3), `font`. `fn("HH:MM")` is called after the user turns a wheel |
+| `el.image(opts)` | A picture from a URL: a JPEG (baseline, not progressive) or PNG, for example a camera snapshot. `url`, and for the request `user`, `password`, `auth`, `headers` as with `retoon.fetch`; `x`, `y`, `w`, `h` (fitted into `w` × `h` without growing, standard 320 × 240), `align`, `radius`; `every`: fetch a new one that often (seconds, at least 2) while it is on the screen. A picture is kept per URL and size, so drawing again shows it at once. Keep pictures small (640 pixels wide is plenty). Level 6 |
 | `el.onClick(fn)` | `fn()` when it is tapped |
 | `el.set(opts)` | Change something already drawn: its options, a text's `text`, a flow's `speed` or `color`, a time picker's `value` (without calling its `fn`) |
 
@@ -294,6 +295,7 @@ start it.
 | 3 | `retoon.notify`, `retoon.sound` (ReToon 1.15 and later) |
 | 4 | `retoon.fetch` with `user`/`password`/`auth` and an answer `headers`; `el.time` (ReToon 1.19 and later) |
 | 5 | `retoon.publish`, `retoon.subscribe`, `retoon.unsubscribe`: MQTT on the Toon's own broker (ReToon 1.20 and later) |
+| 6 | `el.image`: a picture from a URL (ReToon 1.33 and later) |
 
 ## Trying it, and publishing it
 

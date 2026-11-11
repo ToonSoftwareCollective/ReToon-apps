@@ -164,6 +164,10 @@ el.flow(opts)                        dots moving x1,y1 -> x2,y2 by themselves; o
 el.time(opts, fn)                    time picker (hour + minute wheels); opts.value "HH:MM",
                                      step (minutes, a divisor of 60; default 1), rows (1-7,
                                      default 3), font; fn("HH:MM") after a wheel is turned
+el.image(opts)                       picture from a URL (level 6): JPEG (not progressive) or PNG;
+                                     opts.url, user, password, auth, headers (as fetch), x, y,
+                                     w, h (fitted, standard 320 x 240), align, radius, every
+                                     (refetch every that many s, at least 2, while shown)
 el.onClick(fn)                       fn() when tapped
 el.set(opts)                         change in place: any option, a text's { text },
                                      a flow's { speed, color }, a time picker's { value }
@@ -195,6 +199,8 @@ cards are dark grey (`card`).
   adds a time picker.
 - 5 (ReToon 1.20): `retoon.publish`, `retoon.subscribe`, `retoon.unsubscribe`
   (MQTT on the Toon's own broker).
+- 6 (ReToon 1.33): `el.image`, a JPEG or PNG from a URL (camera snapshots;
+  keep them about 640 pixels wide).
 
 ## The shape of an app
 
