@@ -66,7 +66,9 @@ and [powerflow](powerflow) (Home Assistant entities, moving dots).
 
 Required: `id`, `name`, `version` (`"x.y.z"`), `api` (whole number),
 `main`, `description`, `author`. Optional: `tile.height` (card height in
-pixels, 60–520, default 150), `settings`.
+pixels, 60–520, default 150), `settings`, `services` (level 7: the Home
+Assistant services the app calls with `retoon.call`, as `"domain.service"`
+or `"domain.*"`; list only what it needs, the user sees the list).
 
 Setting types: `text`, `secret` (password field), `number`, `bool`,
 `entity` (picks one Home Assistant entity id; `units` filters the list),
@@ -84,7 +86,8 @@ retoon.screen(fn)          fn(el): draw the full screen (optional; without it a 
 retoon.update()            redraw the card(s) and the open full screen, soon (async)
 retoon.settings            object: saved settings over the manifest's defaults, by key
 retoon.onSettings(fn)      fn(): the user saved new settings (retoon.settings has them)
-retoon.watch(ids, fn)      follow these entity ids; fn(id) on each state change; replaces the old list
+retoon.watch(ids, fn)      follow these entity ids; fn(id) when the state or an attribute changes
+                           (attributes from level 7; before only the state); replaces the old list
 retoon.state(id)           { state, value, unit, name, attributes } | null
                            state: string; value: number or NaN; unit: string | null;
                            name: friendly name; attributes: object (as in Home Assistant)
@@ -114,6 +117,12 @@ retoon.subscribe(pattern, fn)
                            yourself); kept (retained) messages arrive right away;
                            again with the same pattern replaces fn; at most 32 (level 5)
 retoon.unsubscribe(pattern)
+retoon.call(service, data, opts)
+                           Home Assistant service over the Toon's own connection (level 7):
+                           service "domain.service", listed in the manifest's "services";
+                           data the service data with entity_id; opts: { response: true } for
+                           a service that answers (calendar.get_events, weather.get_forecasts).
+                           Promise of the answer (null without one); rejects with the reason
 retoon.app                 { id, name, version }
 retoon.log(...args)        log line "app <id>: ..." (console.log is the same)
 setTimeout, setInterval, clearTimeout, clearInterval
@@ -127,8 +136,9 @@ Home Assistant: `toon.temperature`, `toon.humidity`, `toon.illuminance`,
 `toon.hot_water_setpoint`, `toon.max_heating_setpoint`, `toon.modulation`,
 `toon.water_pressure`, `toon.fault_code`, `toon.boiler_fault`,
 `toon.boiler_message`, `toon.flame`, `toon.heat_request`, `toon.display`,
-`toon.wifi`. Apps can read
-states but cannot call Home Assistant services. `retoon.state` of an entity
+`toon.wifi`. To act in Home Assistant, use `retoon.call` (level 7) with the
+service in the manifest's `services`; never ask the user for a Home
+Assistant token. `retoon.state` of an entity
 that is not in a `watch` list may be missing or stale: watch what you show.
 
 The Toon's own MQTT broker (level 5) carries the Toon's state as retained
@@ -201,6 +211,8 @@ cards are dark grey (`card`).
   (MQTT on the Toon's own broker).
 - 6 (ReToon 1.33): `el.image`, a JPEG or PNG from a URL (camera snapshots;
   keep them about 640 pixels wide).
+- 7 (ReToon 1.36): `retoon.call` and the manifest's `services`;
+  `retoon.watch` also reports attribute changes.
 
 ## The shape of an app
 

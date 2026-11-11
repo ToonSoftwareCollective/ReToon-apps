@@ -63,6 +63,7 @@ The folder name is the app's `id`: lower case letters, digits and `-`.
 | `description`, `author` | Shown in the web interface |
 | `tile.height` | The card's height in screen pixels (60–520, default 150). A page can override it with `"height"` on the card |
 | `settings` | What the user can set in the web interface, see below |
+| `services` | The Home Assistant services the app calls with `retoon.call` (level 7), for example `["media_player.join", "media_player.unjoin"]`, or `["media_player.*"]` for a whole domain. Other services are refused. The web interface shows the list with the app, also before it is installed, so list only what the app needs |
 
 ### Settings
 
@@ -120,7 +121,7 @@ be drawn.
 | `retoon.update()` | Draw the card(s) and the open full screen again, soon (not during this call) |
 | `retoon.settings` | The settings: saved values over the manifest's defaults |
 | `retoon.onSettings(fn)` | `fn()` is called after the user saved new settings; `retoon.settings` already has them |
-| `retoon.watch(ids, fn)` | Keep these entities up to date: Home Assistant entities, `mqtt.*` and the Toon's own `toon.*`. `fn(id)` is called when the state of one changes. A new call replaces the list |
+| `retoon.watch(ids, fn)` | Keep these entities up to date: Home Assistant entities, `mqtt.*` and the Toon's own `toon.*`. `fn(id)` is called when the state or an attribute of one changes (attributes from level 7, before only the state). A new call replaces the list |
 | `retoon.state(id)` | `{ state, value, unit, name, attributes }`, or `null` when unknown. `state` is the text, `value` the state as a number (`NaN` if it is not one), `unit` the unit or `null`, `name` the friendly name. Only entities in a `watch` list are kept up to date |
 | `retoon.fetch(url, opts)` | http or https. `opts`: `method`, `headers` (object), `body` (string), `timeout` (seconds, 1–120, default 30), and for HTTP authentication `user`, `password` and `auth` (`"basic"`, `"digest"` or `"any"`, the default when a user is given). A Promise of `{ status, text, headers }` (`headers`: the answer's, names in lower case; level 4). It resolves for every HTTP status (check `status`) and rejects only when there was no answer. At most 4 MB |
 | `retoon.notify(msg, fn)` | Show a message on the Toon: a banner at the top, or a popup in the middle (see [Notifications](#notifications)). `fn(button)` is called with the label of the tapped button, or with `null` when the message was closed without one. Returns `false` when `msg` is not an object |
@@ -128,6 +129,7 @@ be drawn.
 | `retoon.publish(topic, payload, opts)` | Send an MQTT message on the Toon's own broker (see [MQTT](#mqtt-on-the-toon)). `payload`: a string, or anything else as JSON; `opts`: `{ retain }`. Returns `false` when the broker cannot be reached. Level 5 |
 | `retoon.subscribe(pattern, fn)` | `fn(topic, payload)` for every message on a topic that matches (`+` and `#` as in MQTT); `payload` is a string. Kept (retained) messages arrive right away. A second call with the same pattern replaces `fn`; at most 32 per app. Level 5 |
 | `retoon.unsubscribe(pattern)` | Stop that subscription. Level 5 |
+| `retoon.call(service, data, opts)` | Call a Home Assistant service over the Toon's own connection, so the app needs no token: `retoon.call("media_player.volume_set", { entity_id: "media_player.kitchen", volume_level: 0.3 })`. The service must be in the manifest's `services`. `opts`: `{ response: true }` for a service that answers, such as `calendar.get_events` or `weather.get_forecasts`. A Promise of the answer (`null` without one); it rejects with Home Assistant's reason, or when the Toon is not connected to it. Level 7 |
 | `retoon.app` | `{ id, name, version }` |
 | `retoon.log(...)`, `console.log(...)` | Print to the screen program's output, see [trying-an-app.md](trying-an-app.md) |
 | `setTimeout`, `setInterval`, `clearTimeout`, `clearInterval` | As in a browser |
@@ -296,6 +298,7 @@ start it.
 | 4 | `retoon.fetch` with `user`/`password`/`auth` and an answer `headers`; `el.time` (ReToon 1.19 and later) |
 | 5 | `retoon.publish`, `retoon.subscribe`, `retoon.unsubscribe`: MQTT on the Toon's own broker (ReToon 1.20 and later) |
 | 6 | `el.image`: a picture from a URL (ReToon 1.33 and later) |
+| 7 | `retoon.call` and the manifest's `services`; `retoon.watch` also reports attribute changes (ReToon 1.36 and later) |
 
 ## Trying it, and publishing it
 
