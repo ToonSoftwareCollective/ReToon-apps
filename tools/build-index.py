@@ -26,6 +26,7 @@ REQUIRED = ("id", "name", "version", "api", "main", "description", "author")
 ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,46}$")
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
 SETTING_TYPES = {"text", "secret", "number", "bool", "entity", "entities"}
+SERVICE = re.compile(r"^[a-z0-9_]+\.([a-z0-9_]+|\*)$")	# "media_player.join", "media_player.*"
 MAX_SIZE = 1 << 20	# an app is packed to at most this many bytes
 
 
@@ -48,6 +49,11 @@ def check(folder, m, base=ROOT):
 	main = os.path.join(base, folder, m["main"])
 	if os.path.dirname(os.path.normpath(m["main"])) or not os.path.isfile(main):
 		fail(folder, f'"main" ({m["main"]}) is not a file in the folder')
+	services = m.get("services", [])
+	if not isinstance(services, list) or not all(isinstance(s, str) and SERVICE.match(s) for s in services):
+		fail(folder, '"services" must be a list like ["media_player.join", "calendar.*"]')
+	if services and m["api"] < 7:
+		fail(folder, '"services" needs "api" 7 or higher (retoon.call)')
 	for s in m.get("settings", []):
 		if "key" not in s or s.get("type") not in SETTING_TYPES:
 			fail(folder, f"setting {s.get('key')!r}: needs a key and a type "
@@ -113,7 +119,8 @@ def main():
 		apps.append({
 			"id": m["id"], "name": m["name"], "version": m["version"],
 			"api": m["api"], "description": m["description"],
-			"author": m["author"], "file": file, "size": len(data),
+			"author": m["author"], "services": m.get("services", []),
+			"file": file, "size": len(data),
 			"sha256": hashlib.sha256(data).hexdigest(),
 		})
 		print(f"{file}: {len(data)} bytes")
