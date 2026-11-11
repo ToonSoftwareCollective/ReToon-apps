@@ -2,8 +2,8 @@
 // shows the next months. The next dates come from sensors that give
 // the days until the next collection (attribute Days_until, date in Sort_date as
 // yyyymmdd). The following months come from a Home Assistant calendar entity
-// (optional): that needs the Home Assistant address and a long-lived token,
-// because an app can only read states and has to call the REST API for events.
+// (optional), read with retoon.call (calendar.get_events) over the Toon's own
+// connection to Home Assistant, so no token.
 
 const S = () => retoon.settings;
 
@@ -201,27 +201,26 @@ function drawScreen(root) {
 // ---- data
 
 async function loadCalendar() {
-	const cal = S().calendar, url = (S().haUrl || "").replace(/\/+$/, "");
-	if (!cal || !url || !S().token) { events = {}; calError = ""; return; }
+	const cal = S().calendar;
+	if (!cal) { events = {}; calError = ""; return; }
 	const n = new Date(), from = new Date(n.getFullYear(), n.getMonth(), 1), to = new Date(n.getFullYear(), n.getMonth() + MONTHS_SHOWN + 1, 1);
-	const iso = d => key(d.getFullYear(), d.getMonth(), 1) + "T00:00:00Z";
+	const iso = d => key(d.getFullYear(), d.getMonth(), 1) + "T00:00:00";
 	try {
-		const r = await retoon.fetch(url + "/api/calendars/" + cal + "?start=" + iso(from) + "&end=" + iso(to), {
-			headers: { "Authorization": "Bearer " + S().token }, timeout: 20 });
-		if (r.status === 401) throw new Error("token geweigerd");
-		if (r.status >= 300) throw new Error("HTTP " + r.status);
-		const list = JSON.parse(r.text), map = {};
+		const r = await retoon.call("calendar.get_events",
+			{ entity_id: cal, start_date_time: iso(from), end_date_time: iso(to) }, { response: true });
+		const list = (r && r[cal] && r[cal].events) || [], map = {};
 		const names = streams().map(s => nameOf(s).toLowerCase());
 		list.forEach(e => {
-			const day = String((e.start && (e.start.date || e.start.dateTime)) || "").slice(0, 10);
-			const sum = String(e.summary || "").toLowerCase();
-			const i = names.findIndex(n => n === sum || sum.indexOf(n) >= 0 || n.indexOf(sum) >= 0);
-			if (day && i >= 0) { (map[day] = map[day] || []); if (map[day].indexOf(i) < 0) map[day].push(i); }
+			const day = String(e.start || "").slice(0, 10);
+			const sum = String(e.summary || "").trim().toLowerCase();
+			if (!day || !sum) return;
+			const i = names.findIndex(nm => nm === sum || sum.indexOf(nm) >= 0 || nm.indexOf(sum) >= 0);
+			if (i >= 0) { (map[day] = map[day] || []); if (map[day].indexOf(i) < 0) map[day].push(i); }
 		});
 		events = map;
 		calError = "";
 	} catch (e) {
-		calError = "Kalender laden mislukt: " + e.message;
+		calError = "Kalender laden mislukt: " + (e && e.message ? e.message : e);
 		retoon.log(calError);
 	}
 	retoon.update();

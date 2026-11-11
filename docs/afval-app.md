@@ -11,26 +11,21 @@ also shows the days after it.
 
 ![The card on the Home page](images/afval-card.png)
 
-**The full screen** (tap the card) shows the next six months, starting with this one, each
-collection day in the colour of its kind of waste, today with an outline, and
-the colours explained above the calendar.
+**The full screen** (tap the card) shows the next six months, starting with
+this one, each collection day in the colour of its kind of waste, today with an
+outline, and the colours explained above the calendar.
 
 ![The full screen](images/afval-year.png)
 
-## What you need in Home Assistant
+## What you need
 
-1. The **Afvalbeheer** integration, which makes a sensor for each kind of waste
-   (for example `sensor.meerlanden_gft`) with the attributes `Days_until` and
-   `Sort_date`, and a calendar (for example `calendar.afvalbeheer_meerlanden`).
-2. ReToon connected to Home Assistant, so the app can read the sensors.
-3. For the **following months** only (without it the full screen shows the next date
-   of each kind): a **long-lived access token**. Open
-   <https://my.home-assistant.io/redirect/profile_security/> (it asks once for
-   the address of your Home Assistant and goes to your profile, tab
-   **Security**), and under *Long-lived access tokens* press *Create token*.
-   Copy it at once, Home Assistant shows it only one time. Also an address of
-   Home Assistant that the Toon can reach, for example
-   `http://192.168.1.10:8123`.
+1. The **Afvalbeheer** integration in Home Assistant, which makes a sensor for
+   each kind of waste (for example `sensor.meerlanden_gft`) with the attributes
+   `Days_until` and `Sort_date`, and a calendar (for example
+   `calendar.afvalbeheer_meerlanden`).
+2. ReToon 1.36 or later, connected to Home Assistant. The app reads the
+   sensors, and the calendar with `retoon.call`, over that connection, so it
+   needs no address and no token of its own.
 
 ## Settings
 
@@ -39,9 +34,7 @@ In the Toon's web interface under **Apps**:
 | Setting | What to enter |
 |---|---|
 | Waste sensors | One row for each kind of waste (up to 6): the sensor, and optionally a name, icon and colour |
-| Waste calendar | The calendar of the integration (optional, for the following months) |
-| Home Assistant address | For the calendar, without a path |
-| Long-lived access token | The token from step 3 |
+| Waste calendar | The calendar of the integration (optional; without it the full screen only shows the next date of each kind) |
 
 You do not have to choose colours or icons: they follow the name of the kind
 of waste (a word in it is enough): gft/groen green, pmd/plastic orange,
@@ -50,18 +43,15 @@ kca red. To choose your own, type a colour name (green, blue, orange, red, grey,
 brown, purple, yellow, or the Dutch groen, blauw, oranje, rood, grijs, bruin,
 paars, geel) or `#rrggbb`, and an icon such as `mdi:leaf`.
 
-## Why the app needs its own token
+## How the months are filled
 
-An app can read the states of Home Assistant entities (`retoon.watch`), and
-that is all the card needs, so the card works without a token. A sensor only
-knows the next collection, though. The dates after that are in the calendar,
-and an app cannot read a calendar through the app interface: it asks the Home
-Assistant REST API (`/api/calendars/...`) itself with `retoon.fetch`, and for
-that it needs a token.
+A sensor only knows the next collection. The following months come from the
+calendar: the app calls `calendar.get_events` (listed in the manifest's
+`services`, the only service it calls) for the current month and the six after
+it. It reads the calendar when it starts, after saving the settings, and every
+6 hours. An event is matched to a kind of waste by its title; an event without
+a title is ignored.
 
-The token is only sent to the address you enter, and the app makes no other
-request. It reads the calendar when it starts, after saving the settings, and
-every 6 hours. Without a token the card is unchanged.
-
-Dates further ahead appear as soon as the waste collector publishes
-them: with Meerlanden the calendar currently runs about twelve months ahead, so six months are always filled.
+Dates further ahead appear as soon as the waste collector publishes them: with
+Meerlanden the calendar currently runs about twelve months ahead, so six months
+are always filled.
