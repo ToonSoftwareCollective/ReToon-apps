@@ -1,9 +1,8 @@
 // Sonos for ReToon. The card shows the active group of Sonos speakers (for
 // example "P5 + P1") with volume -/+ and play/pause. A tap opens a full screen
 // to pick a group, build a group (add or remove speakers) and choose content.
-// States come from Home Assistant (retoon.watch); commands go to the Home
-// Assistant REST API with a long-lived token, because an app cannot call Home
-// Assistant services by itself.
+// States come from Home Assistant (retoon.watch); commands go through
+// retoon.call, over the Toon's own connection to Home Assistant, so no token.
 
 const S = () => retoon.settings;
 
@@ -103,25 +102,11 @@ function groupVolume(g) {
 }
 
 async function call(service, entity, extra) {
-	const url = (S().haUrl || "").replace(/\/+$/, "");
-	if (!url || !S().token) {
-		error = "Vul het HA-adres en de token in onder Apps in de webinterface";
-		retoon.update();
-		return;
-	}
 	try {
-		const body = Object.assign({ entity_id: entity }, extra || {});
-		const r = await retoon.fetch(url + "/api/services/media_player/" + service, {
-			method: "POST",
-			headers: { "Authorization": "Bearer " + S().token, "Content-Type": "application/json" },
-			body: JSON.stringify(body),
-			timeout: 10
-		});
-		if (r.status === 401) throw new Error("token geweigerd");
-		if (r.status >= 300) throw new Error("HTTP " + r.status);
+		await retoon.call("media_player." + service, Object.assign({ entity_id: entity }, extra || {}));
 		error = "";
 	} catch (e) {
-		error = "Mislukt: " + e.message;
+		error = "Mislukt: " + (e && e.message ? e.message : e);
 		retoon.log(error);
 	}
 	retoon.update();

@@ -2,19 +2,18 @@
 	"id": "sonos",
 	"name": "Sonos",
 	"version": "1.0.0",
-	"api": 2,
+	"api": 7,
 	"main": "main.js",
-	"description": "Control your Sonos speakers through Home Assistant. The card shows the active group of speakers (for example P5 + P1) with volume and play/pause; tap it to control volume and play/pause, pick a group, build a group by adding or removing speakers, and choose content. Pick the Sonos media players, then enter the address of Home Assistant and a long-lived access token (Home Assistant profile, Security), because apps can only read states and must call the Home Assistant REST API to send commands.",
+	"description": "Control your Sonos speakers through Home Assistant. The card shows the active group of speakers (for example P5 + P1) with volume and play/pause; tap it to control volume and play/pause, pick a group, build a group by adding or removing speakers, and choose content. Pick the Sonos media players.",
 	"author": "Stefan Verstege (newmedia)",
 	"tile": { "height": 150 },
+	"services": ["media_player.volume_set", "media_player.media_play_pause", "media_player.join", "media_player.unjoin", "media_player.select_source"],
 	"settings": [
 		{ "key": "players", "label": "Sonos speakers", "type": "entities", "max": 6, "addLabel": "Add a speaker",
 		  "fields": [
 			{ "key": "name", "label": "Name (empty: the name in Home Assistant)", "type": "text" }
 		  ],
 		  "default": [] },
-		{ "key": "haUrl", "label": "Home Assistant address, for example http://192.168.1.10:8123", "type": "text", "default": "" },
-		{ "key": "token", "label": "Long-lived access token (create one at my.home-assistant.io/redirect/profile_security)", "type": "secret", "default": "" },
 		{ "key": "step", "label": "Volume step (%)", "type": "number", "default": 5 }
 	]
 }
