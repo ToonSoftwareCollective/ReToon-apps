@@ -9,6 +9,7 @@ and optionally a full screen that opens when the card is tapped.
 | [afval](afval) | When each kind of waste is collected: the next collection on a card, the next six months on the full screen ([setup](docs/afval-app.md)) |
 | [spotenergy](spotenergy) | Dynamic electricity prices for the Netherlands, with taxes, as a card and a full-screen graph |
 | [powerflow](powerflow) | Where the power in your home comes from and goes to, with moving dots |
+| [sonos](sonos) | Control Sonos speakers through Home Assistant: the playing group, volume, play/pause, building groups and choosing content ([setup](docs/sonos-app.md)) |
 
 ## Installing an app
 
