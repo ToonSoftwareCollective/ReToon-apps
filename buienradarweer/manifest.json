@@ -1,0 +1,29 @@
+{
+  "id": "buienradarweer",
+  "name": "BuienradarWeer",
+  "version": "1.1.0",
+  "api": 7,
+  "main": "main.js",
+  "description": "Actueel weer en vijfdaagse verwachting via een Home Assistant-weather-entiteit.",
+  "tile": {
+    "height": 220
+  },
+  "settings": [
+    {
+      "key": "entity",
+      "label": "Weather-entiteit",
+      "type": "entity",
+      "default": ""
+    },
+    {
+      "key": "title",
+      "label": "Plaatsnaam",
+      "type": "text",
+      "default": "Buienradar"
+    }
+  ],
+  "author": "dEADkIRK",
+  "services": [
+    "weather.get_forecasts"
+  ]
+}
