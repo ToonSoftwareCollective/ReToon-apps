@@ -1,9 +1,10 @@
 # Afval app (waste calendar)
 
 Shows when each kind of waste is collected, for the Dutch waste collectors
-that the Home Assistant integration
+that the Home Assistant integrations
 [Afvalbeheer](https://github.com/pippyn/Home-Assistant-Sensor-Afvalbeheer)
-supports.
+and [Afvalwijzer](https://github.com/xirixiz/homeassistant-afvalwijzer)
+support.
 
 **The card** shows the next collection ("GFT + PMD" when two kinds are
 collected on the same day) and "Morgen", "Vandaag" or the date. A taller card
@@ -19,10 +20,17 @@ outline, and the colours explained above the calendar.
 
 ## What you need
 
-1. The **Afvalbeheer** integration in Home Assistant, which makes a sensor for
-   each kind of waste (for example `sensor.meerlanden_gft`) with the attributes
-   `Days_until` and `Sort_date`, and a calendar (for example
-   `calendar.afvalbeheer_meerlanden`).
+1. The **Afvalbeheer** or the **Afvalwijzer** integration in Home Assistant.
+   Each makes a sensor for each kind of waste and a calendar:
+   - Afvalbeheer: for example `sensor.meerlanden_gft` (attributes `Days_until`
+     and `Sort_date`) and `calendar.afvalbeheer_meerlanden`;
+   - Afvalwijzer: for example `sensor.afvalwijzer_1234ab_1_gft` (attribute
+     `days_until_collection_date`, the date as its state) and
+     `calendar.afvalwijzer_1234ab_1`.
+
+   A day in the calendar belongs to a kind of waste when its name is in the
+   calendar's text, or when both are the same kind: "Dar: Plastic" counts for a
+   kind called PMD.
 2. ReToon 1.36 or later, connected to Home Assistant. The app reads the
    sensors, and the calendar with `retoon.call`, over that connection, so it
    needs no address and no token of its own.
