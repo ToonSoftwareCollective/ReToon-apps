@@ -123,8 +123,9 @@ retoon.call(service, data, opts)
                            data the service data with entity_id; opts: { response: true } for
                            a service that answers (calendar.get_events, weather.get_forecasts).
                            Promise of the answer (null without one); rejects with the reason,
-                           also while the Toon is not connected to Home Assistant (just after
-                           a start): retry a call made at start after a minute
+                           also when the Toon is not connected to Home Assistant. From ReToon
+                           1.37 a call waits for the connection (up to a minute); on 1.36 it
+                           rejects at once just after a start: retry such a call after a minute
 retoon.app                 { id, name, version }
 retoon.log(...args)        log line "app <id>: ..." (console.log is the same)
 setTimeout, setInterval, clearTimeout, clearInterval
