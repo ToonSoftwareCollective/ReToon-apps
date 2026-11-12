@@ -32,6 +32,7 @@ const COLORS = {
 
 let events = {};	// "yyyy-mm-dd" -> [stream index], from the calendar
 let calError = "";
+let retry = null;	// timer that tries again after a failure
 
 function streams() {
 	return (S().streams || []).filter(s => s && s.entity);
@@ -201,6 +202,7 @@ function drawScreen(root) {
 // ---- data
 
 async function loadCalendar() {
+	clearTimeout(retry);
 	const cal = S().calendar;
 	if (!cal) { events = {}; calError = ""; return; }
 	const n = new Date(), from = new Date(n.getFullYear(), n.getMonth(), 1), to = new Date(n.getFullYear(), n.getMonth() + MONTHS_SHOWN + 1, 1);
@@ -222,6 +224,8 @@ async function loadCalendar() {
 	} catch (e) {
 		calError = "Kalender laden mislukt: " + (e && e.message ? e.message : e);
 		retoon.log(calError);
+		// at start the Toon is not yet connected to Home Assistant: try again soon
+		retry = setTimeout(loadCalendar, 60 * 1000);
 	}
 	retoon.update();
 }
