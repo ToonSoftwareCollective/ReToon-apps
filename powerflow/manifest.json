@@ -1,10 +1,10 @@
 {
 	"id": "powerflow",
 	"name": "Power flow",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"api": 2,
 	"main": "main.js",
-	"description": "Shows where the power in your home comes from and goes to. Pick Home Assistant entities that give power in W or kW. A positive value flows from the entity to the middle (for example solar panels producing, power taken from the grid, a battery discharging); a negative value flows from the middle to the entity. Use \"Reverse\" for a sensor that counts the other way round. Home, at the top, is the sum of all of them. The more power, the faster the dots move.",
+	"description": "Shows where the power in your home comes from and goes to. Pick Home Assistant entities that give power in W or kW. A positive value flows from the entity to the middle (for example solar panels producing, power taken from the grid, a battery discharging); a negative value flows from the middle to the entity. Use \"Reverse\" for a sensor that counts the other way round. Home, at the top, is what is left for the rest of the house, signed the same way: negative when the house uses it. The more power, the faster the dots move.",
 	"author": "Igor Ybema",
 	"tile": { "height": 380 },
 	"settings": [

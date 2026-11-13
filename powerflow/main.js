@@ -1,7 +1,8 @@
 // Power flow for ReToon: Home Assistant power entities in a circle around one
 // middle point, with dots running along the lines; the more power, the
 // faster. A positive value runs from the entity to the middle, a negative
-// one from the middle to the entity. "Home" at the top is the sum of all.
+// one from the middle to the entity. "Home" at the top takes what is left:
+// the sum of all, signed the same way (negative: the house uses it).
 
 const S = () => retoon.settings;
 const COLORS = ["#ffb300", "#4da3ff", "#4caf50", "#ef5350", "#ab47bc", "#26c6da", "#ff7043", "#9ccc65"];
@@ -125,10 +126,11 @@ function refresh(d) {
 	}
 	const home = d.nodes.find(it => it.home);
 	if (home) {
-		const w = known ? sum : null;
+		// Home takes what is left in the middle, so it flows from the middle
+		// to Home: negative, as for every other entity that uses power
+		const w = known ? -sum : null;
 		home.value.set({ text: fmt(w) });
-		// Home takes what is left in the middle: positive runs towards Home
-		home.flow.set({ speed: w === null ? 0 : -Math.sign(w) * speed(w) });
+		home.flow.set({ speed: w === null ? 0 : Math.sign(w) * speed(w) });
 	}
 }
 
