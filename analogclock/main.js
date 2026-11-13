@@ -1,4 +1,4 @@
-// Closely overlapping circles form rounded hands using documented set({ x, y }).
+// Rounded boxes use top-left coordinates both at creation and during set().
 // Centre spacing <= 17% of the diameter limits edge scalloping to subpixel size.
 const themes = new Set(["text", "muted", "accent", "ok", "warn", "bad", "card", "background"]);
 const palette = { wit: "#ffffff", grijs: "#999999", donkerblauw: "#183b73", rood: "#e53935", donkergroen: "#176b3a" };
@@ -19,14 +19,16 @@ function hand(el, face, length, thickness, tint) {
   const count = Math.ceil(length / (thickness * 0.17)) + 1;
   const dots = [];
   for (let i = 0; i < count; i++) {
-    dots.push(el.circle({ x: face.cx, y: face.cy, r: thickness / 2, bg: tint, border: 0 }));
+    dots.push(el.box({ x: face.cx - thickness / 2, y: face.cy - thickness / 2,
+      w: thickness, h: thickness, radius: thickness / 2, bg: tint, border: 0 }));
   }
-  return { dots, length };
+  return { dots, length, radius: thickness / 2 };
 }
 
 function moveHand(face, hand, turns) {
   hand.dots.forEach((dot, i) => {
-    dot.set(point(face.cx, face.cy, hand.length * i / (hand.dots.length - 1), turns));
+    const p = point(face.cx, face.cy, hand.length * i / (hand.dots.length - 1), turns);
+    dot.set({ x: p.x - hand.radius, y: p.y - hand.radius });
   });
 }
 

@@ -28,9 +28,11 @@ blijven. De huidige app-API ondersteunt geen kleurdropdown; kleuren zijn tekstve
 ## Werking en validatie
 
 De uur- en minuutwijzer worden iedere seconde bijgewerkt met `el.set` op bestaande
-tekenelementen. Dikkere wijzers bestaan uit dicht overlappende cirkels met
+tekenelementen. Dikkere wijzers bestaan uit dicht overlappende ronde elementen met
 afgeronde uiteinden. De geometrische golving tussen cirkels blijft kleiner dan
 0,15 schermpixel bij ondersteunde kaartafmetingen; ReToon verzorgt de rastering.
+De bewegende elementen gebruiken consequent linkerbovenhoekcoördinaten, zodat
+beide wijzers hetzelfde draaipunt houden bij verschillende diktes.
 Er zijn geen netwerkverzoeken, services, credentials of
 apparaatgebonden instellingen. Tekenfuncties werken ook zonder ingevulde instellingen.
 

@@ -1,7 +1,7 @@
 {
   "id": "analogclock",
   "name": "AnalogClock",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "api": 2,
   "main": "main.js",
   "description": "Analoge klok met instelbare kleuren en achtergrond. Vul als kleur wit, grijs, donkerblauw, rood of donkergroen in. Eigen kleur: # gevolgd door precies zes hexadecimale tekens (0-9, a-f), bijvoorbeeld #ff9900 voor oranje. Ook ReToon-themakleuren (text, muted, accent, ok, warn, bad, card, background) werken. Algemene kleur leeg = thema; overige kleuren leeg = algemene klokkleur. Zwarte achtergrond uit = standaard ReToon-kaartkleur. De buitenste kaartrand blijft door ReToon bepaald.",
