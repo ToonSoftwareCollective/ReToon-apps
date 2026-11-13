@@ -68,7 +68,10 @@ Required: `id`, `name`, `version` (`"x.y.z"`), `api` (whole number),
 `main`, `description`, `author`. Optional: `tile.height` (card height in
 pixels, 60–520, default 150), `settings`, `services` (level 7: the Home
 Assistant services the app calls with `retoon.call`, as `"domain.service"`
-or `"domain.*"`; list only what it needs, the user sees the list).
+or `"domain.*"`; list only what it needs, the user sees the list),
+`cameras` (level 8: the Home Assistant cameras the app shows with
+`el.image({ camera })`, `"camera.door"` or `"camera.*"` for any, as when the
+user picks the camera in the settings).
 
 Setting types: `text`, `secret` (password field), `number`, `bool`,
 `entity` (picks one Home Assistant entity id; `units` filters the list),
@@ -140,7 +143,8 @@ Home Assistant: `toon.temperature`, `toon.humidity`, `toon.illuminance`,
 `toon.water_pressure`, `toon.fault_code`, `toon.boiler_fault`,
 `toon.boiler_message`, `toon.flame`, `toon.heat_request`, `toon.display`,
 `toon.wifi`. To act in Home Assistant, use `retoon.call` (level 7) with the
-service in the manifest's `services`; never ask the user for a Home
+service in the manifest's `services`, and to show a camera `el.image({ camera })`
+(level 8) with it in `cameras`; never ask the user for a Home
 Assistant token. `retoon.state` of an entity
 that is not in a `watch` list may be missing or stale: watch what you show.
 
@@ -180,7 +184,13 @@ el.time(opts, fn)                    time picker (hour + minute wheels); opts.va
 el.image(opts)                       picture from a URL (level 6): JPEG (not progressive) or PNG;
                                      opts.url, user, password, auth, headers (as fetch), x, y,
                                      w, h (fitted, standard 320 x 240), align, radius, every
-                                     (refetch every that many s, at least 2, while shown)
+                                     (refetch every that many s, at least 2, while shown);
+                                     level 8: camera ("camera.x", in the manifest's "cameras",
+                                     no token, instead of url), stream (MJPEG, from a camera or
+                                     a url), fps (1-10, default 5); a stream runs only while
+                                     shown. Keep streams small (640 x 360): a Toon 1 manages
+                                     about 4 frames a second. From 1.39 progressive
+                                     JPEGs work too
 el.onClick(fn)                       fn() when tapped
 el.set(opts)                         change in place: any option, a text's { text },
                                      a flow's { speed, color }, a time picker's { value }
@@ -216,6 +226,8 @@ cards are dark grey (`card`).
   keep them about 640 pixels wide).
 - 7 (ReToon 1.36): `retoon.call` and the manifest's `services`;
   `retoon.watch` also reports attribute changes.
+- 8 (ReToon 1.39): `el.image` with `camera` (the manifest's `cameras`),
+  `stream` (MJPEG) and `fps`.
 
 ## The shape of an app
 

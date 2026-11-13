@@ -64,6 +64,7 @@ The folder name is the app's `id`: lower case letters, digits and `-`.
 | `tile.height` | The card's height in screen pixels (60–520, default 150). A page can override it with `"height"` on the card |
 | `settings` | What the user can set in the web interface, see below |
 | `services` | The Home Assistant services the app calls with `retoon.call` (level 7), for example `["media_player.join", "media_player.unjoin"]`, or `["media_player.*"]` for a whole domain. Other services are refused. The web interface shows the list with the app, also before it is installed, so list only what the app needs |
+| `cameras` | The Home Assistant cameras the app shows with `el.image({ camera })` (level 8), for example `["camera.door"]`, or `["camera.*"]` for any camera, as when the user picks it in the settings. Other cameras are refused; the web interface shows the list with the app |
 
 ### Settings
 
@@ -227,7 +228,7 @@ Positions are in pixels of the screen as if it is 1024 wide; on a Toon 1
 | `el.line([x1, y1, x2, y2, ...], opts)` | A line through these points (at least two); `width` (default 2), `color`, `opacity` |
 | `el.flow(opts)` | Dots moving from `x1, y1` to `x2, y2` by themselves; `speed` in pixels a second (below 0 the other way, 0 still), `gap` (30), `size` (8), `color` |
 | `el.time(opts, fn)` | A time picker: an hour wheel and a minute wheel the user scrolls. `value` (`"HH:MM"`), `step` (minutes between the minute wheel's entries, a divisor of 60, default 1), `rows` (visible rows, 1–7, default 3), `font`. `fn("HH:MM")` is called after the user turns a wheel |
-| `el.image(opts)` | A picture from a URL: a JPEG (baseline, not progressive) or PNG, for example a camera snapshot. `url`, and for the request `user`, `password`, `auth`, `headers` as with `retoon.fetch`; `x`, `y`, `w`, `h` (fitted into `w` × `h` without growing, standard 320 × 240), `align`, `radius`; `every`: fetch a new one that often (seconds, at least 2) while it is on the screen. A picture is kept per URL and size, so drawing again shows it at once. Keep pictures small (640 pixels wide is plenty). Level 6 |
+| `el.image(opts)` | A picture from a URL: a JPEG (baseline, not progressive) or PNG, for example a camera snapshot. `url`, and for the request `user`, `password`, `auth`, `headers` as with `retoon.fetch`; `x`, `y`, `w`, `h` (fitted into `w` × `h` without growing, standard 320 × 240), `align`, `radius`; `every`: fetch a new one that often (seconds, at least 2) while it is on the screen. A picture is kept per URL and size, so drawing again shows it at once. Keep pictures small (640 pixels wide is plenty). Level 6. From level 8: `camera: "camera.door"` instead of `url`, a Home Assistant camera over the Toon's own connection, with no token (it must be in the manifest's `cameras`); `stream: true` for moving MJPEG video, from a `camera` or from a `url` that gives `multipart/x-mixed-replace`; `fps` at most that many frames a second (1–10, default 5). A stream runs only while the picture is on the screen. A 640 × 360 stream is about what a Toon manages: a Toon 2 shows 5 frames a second of it, a Toon 1 about 4. From ReToon 1.39 progressive JPEGs work too. Cameras that Home Assistant only has as WebRTC (newer Google Nest cameras) give no picture |
 | `el.onClick(fn)` | `fn()` when it is tapped |
 | `el.set(opts)` | Change something already drawn: its options, a text's `text`, a flow's `speed` or `color`, a time picker's `value` (without calling its `fn`) |
 
@@ -299,6 +300,7 @@ start it.
 | 5 | `retoon.publish`, `retoon.subscribe`, `retoon.unsubscribe`: MQTT on the Toon's own broker (ReToon 1.20 and later) |
 | 6 | `el.image`: a picture from a URL (ReToon 1.33 and later) |
 | 7 | `retoon.call` and the manifest's `services`; `retoon.watch` also reports attribute changes (ReToon 1.36 and later) |
+| 8 | `el.image` with `camera`, `stream` and `fps`, and the manifest's `cameras` (ReToon 1.39 and later) |
 
 ## Trying it, and publishing it
 

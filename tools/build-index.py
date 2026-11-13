@@ -27,6 +27,7 @@ ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,46}$")
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
 SETTING_TYPES = {"text", "secret", "number", "bool", "entity", "entities"}
 SERVICE = re.compile(r"^[a-z0-9_]+\.([a-z0-9_]+|\*)$")	# "media_player.join", "media_player.*"
+CAMERA = re.compile(r"^camera\.([a-z0-9_]+|\*)$")		# "camera.door", "camera.*"
 MAX_SIZE = 1 << 20	# an app is packed to at most this many bytes
 
 
@@ -54,6 +55,11 @@ def check(folder, m, base=ROOT):
 		fail(folder, '"services" must be a list like ["media_player.join", "calendar.*"]')
 	if services and m["api"] < 7:
 		fail(folder, '"services" needs "api" 7 or higher (retoon.call)')
+	cameras = m.get("cameras", [])
+	if not isinstance(cameras, list) or not all(isinstance(c, str) and CAMERA.match(c) for c in cameras):
+		fail(folder, '"cameras" must be a list like ["camera.door"] or ["camera.*"]')
+	if cameras and m["api"] < 8:
+		fail(folder, '"cameras" needs "api" 8 or higher (el.image with camera)')
 	for s in m.get("settings", []):
 		if "key" not in s or s.get("type") not in SETTING_TYPES:
 			fail(folder, f"setting {s.get('key')!r}: needs a key and a type "
@@ -120,6 +126,7 @@ def main():
 			"id": m["id"], "name": m["name"], "version": m["version"],
 			"api": m["api"], "description": m["description"],
 			"author": m["author"], "services": m.get("services", []),
+			"cameras": m.get("cameras", []),
 			"file": file, "size": len(data),
 			"sha256": hashlib.sha256(data).hexdigest(),
 		})
