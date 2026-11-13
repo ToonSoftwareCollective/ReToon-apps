@@ -79,6 +79,8 @@ The web interface makes a form from `settings`. The values are in
 | `bool` | A check box | `true` / `false` |
 | `entity` | One entity, picked from Home Assistant | entity id, e.g. `"sensor.outside"` |
 | `entities` | A list of entities, each with extra `fields` (`text`, `number` or `bool`); also `max` and `addLabel` | `[{ "entity": "...", <field keys> }]` |
+| `color` | A colour list (white, red, teal…, or an own colour); level 9 | a colour name or `"#rrggbb"`, `""` for Standard (the app's own): give it straight to `color` or `bg` |
+| `select` | A list to choose from; `options`: values (`["small", "large"]`) or `[{ "value": "small", "label": "Small" }]`; level 9 | the chosen value, a string |
 
 `units` (with `entity` and `entities`) limits the picker to entities in those
 units, e.g. `["W", "kW"]`. See `powerflow/manifest.json` for an `entities`
@@ -224,13 +226,13 @@ Positions are in pixels of the screen as if it is 1024 wide; on a Toon 1
 | `el.text(string, opts)` | Text. `font`, `textAlign` (`left`, `center`, `right`; needs `w`) |
 | `el.button(label, opts, fn)` | A button, 48 px high; `fn()` on a tap |
 | `el.icon("mdi:name", opts)` | A [Material Design icon](https://pictogrammers.com/library/mdi/); `size`: `small` (26 px), `mid` (32), `big` (48) |
-| `el.circle(opts)` | `x`, `y` are the centre, `r` the radius |
-| `el.line([x1, y1, x2, y2, ...], opts)` | A line through these points (at least two); `width` (default 2), `color`, `opacity` |
+| `el.circle(opts)` | `x`, `y` are the centre, `r` the radius; from level 9 `el.set({ x, y, r })` keeps them that (before, `el.set` took `x`, `y` as its top left) |
+| `el.line([x1, y1, x2, y2, ...], opts)` | A line through these points (at least two), with round ends; `width` (default 2), `color`, `opacity`. From level 9 `el.set({ points: [...] })` moves it: a clock's hand or a meter's needle is one line, moved by giving its new end points |
 | `el.flow(opts)` | Dots moving from `x1, y1` to `x2, y2` by themselves; `speed` in pixels a second (below 0 the other way, 0 still), `gap` (30), `size` (8), `color` |
 | `el.time(opts, fn)` | A time picker: an hour wheel and a minute wheel the user scrolls. `value` (`"HH:MM"`), `step` (minutes between the minute wheel's entries, a divisor of 60, default 1), `rows` (visible rows, 1–7, default 3), `font`. `fn("HH:MM")` is called after the user turns a wheel |
 | `el.image(opts)` | A picture from a URL: a JPEG (baseline, not progressive) or PNG, for example a camera snapshot. `url`, and for the request `user`, `password`, `auth`, `headers` as with `retoon.fetch`; `x`, `y`, `w`, `h` (fitted into `w` × `h` without growing, standard 320 × 240), `align`, `radius`; `every`: fetch a new one that often (seconds, at least 2) while it is on the screen. A picture is kept per URL and size, so drawing again shows it at once. Keep pictures small (640 pixels wide is plenty). Level 6. From level 8: `camera: "camera.door"` instead of `url`, a Home Assistant camera over the Toon's own connection, with no token (it must be in the manifest's `cameras`); `stream: true` for moving MJPEG video, from a `camera` or from a `url` that gives `multipart/x-mixed-replace`; `fps` at most that many frames a second (1–10, default 5). A stream runs only while the picture is on the screen. A 640 × 360 stream is about what a Toon manages: a Toon 2 shows 5 frames a second of it, a Toon 1 about 4. From ReToon 1.39 progressive JPEGs work too. Cameras that Home Assistant only has as WebRTC (newer Google Nest cameras) give no picture |
 | `el.onClick(fn)` | `fn()` when it is tapped |
-| `el.set(opts)` | Change something already drawn: its options, a text's `text`, a flow's `speed` or `color`, a time picker's `value` (without calling its `fn`) |
+| `el.set(opts)` | Change something already drawn: its options, a text's `text`, a flow's `speed` or `color`, a time picker's `value` (without calling its `fn`). From level 9, on the `el` that `retoon.tile` gives: `bg`, `border`, `borderColor` and `radius` style the whole card (it is dark grey otherwise), for example `el.set({ bg: "#1d4e89" })`; on the `el` of `retoon.screen` the whole screen. Set it on each drawing: a drawing without it shows the standard colour again |
 
 Options:
 
@@ -247,7 +249,10 @@ Options:
 
 Colours are `"#rrggbb"` or a theme name: `text`, `muted`, `accent`, `ok`,
 `warn`, `bad`, `card`, `background`. The theme names follow the Toon's
-colours, so use them where you can.
+colours, so use them where you can. From level 9 also the names the
+dashboard and a `color` setting use: `white`, `grey`, `red`, `orange`,
+`amber`, `yellow`, `green`, `teal`, `cyan`, `blue`, `purple`, `pink` (and
+the other Home Assistant colour names).
 
 The font has Latin, Greek and Cyrillic letters and the usual symbols
 (`°`, `€`, `–`, `…`), but no emoji.
@@ -301,6 +306,7 @@ start it.
 | 6 | `el.image`: a picture from a URL (ReToon 1.33 and later) |
 | 7 | `retoon.call` and the manifest's `services`; `retoon.watch` also reports attribute changes (ReToon 1.36 and later) |
 | 8 | `el.image` with `camera`, `stream` and `fps`, and the manifest's `cameras` (ReToon 1.39 and later) |
+| 9 | `el.set({ bg })` on the tile's own `el` colours the whole card; `el.set({ points })` moves a line; `el.set` keeps a circle's `x`, `y` as its centre; settings of type `color` and `select`; the dashboard's colour names (ReToon 1.40 and later) |
 
 ## Trying it, and publishing it
 

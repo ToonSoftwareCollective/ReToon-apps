@@ -76,7 +76,10 @@ user picks the camera in the settings).
 Setting types: `text`, `secret` (password field), `number`, `bool`,
 `entity` (picks one Home Assistant entity id; `units` filters the list),
 `entities` (a list of rows `{ entity, ...fields }`; takes `fields` with types
-`text`/`number`/`bool`, `max`, `addLabel`, `units`). Every setting has
+`text`/`number`/`bool`, `max`, `addLabel`, `units`), and from level 9
+`color` (a colour list; the value is a colour name or `#rrggbb`, `""` =
+the app's own) and `select` (`options`: values or `{ value, label }`; the
+value is the chosen one). Every setting has
 `key` and `label`; give a `default`.
 
 ## The interface
@@ -174,7 +177,8 @@ el.box(opts)                         rectangle
 el.text(string, opts)                text; opts.font, opts.textAlign ("left"|"center"|"right", needs w)
 el.button(label, opts, fn)           button, 48 high; fn() on tap
 el.icon("mdi:name", opts)            Material Design icon; opts.size "small"(26) | "mid"(32) | "big"(48)
-el.circle(opts)                      opts.x, opts.y = centre, opts.r = radius
+el.circle(opts)                      opts.x, opts.y = centre, opts.r = radius (also in
+                                     el.set from level 9)
 el.line([x1, y1, x2, y2, ...], opts) polyline, at least 2 points (4 numbers); opts.width (2)
 el.flow(opts)                        dots moving x1,y1 -> x2,y2 by themselves; opts.speed px/s
                                      (negative: the other way, 0: still), gap (30), size (8)
@@ -194,7 +198,13 @@ el.image(opts)                       picture from a URL (level 6): JPEG (not pro
 el.onClick(fn)                       fn() when tapped
 el.set(opts)                         change in place: any option, a text's { text },
                                      a flow's { speed, color }, a time picker's { value }
-                                     (no fn call); cheap, no redraw of the rest
+                                     (no fn call); cheap, no redraw of the rest.
+                                     Level 9: a line's { points, width, color };
+                                     a circle's { x, y, r } (centre, as el.circle).
+                                     Level 9: on the el that the tile fn gets,
+                                     { bg, border, borderColor, radius } style the
+                                     whole card (standard: dark grey); on the screen
+                                     fn's el, the whole screen. Set it on every drawing
 ```
 
 Options: `x`, `y`, `w`, `h`; `align` (`top-left`, `top-mid`, `top-right`,
@@ -228,6 +238,10 @@ cards are dark grey (`card`).
   `retoon.watch` also reports attribute changes.
 - 8 (ReToon 1.39): `el.image` with `camera` (the manifest's `cameras`),
   `stream` (MJPEG) and `fps`.
+- 9 (ReToon 1.40): `el.set({ bg })` on the tile's own `el` colours the whole
+  card; `el.set({ points })` moves a line (a hand, a needle); `el.set` keeps
+  a circle's `x`, `y` as its centre; setting types `color` and `select`;
+  colours may also be the dashboard's names (`red`, `teal`, `white`...).
 
 ## The shape of an app
 
@@ -281,7 +295,8 @@ For an app that shows entities instead: call `retoon.watch([...ids],
 - Leave about 8–12 px between elements. Touch targets at least 48 px.
 - For bars or graphs, compute positions from `el.width`/`el.height`.
 - Avoid hundreds of elements; one `el.line` with many points is cheaper than
-  many lines. Things that change often: `el.set`, not `retoon.update()`.
+  many lines. Something that turns (a clock's hand, a needle) is one
+  `el.line`, moved with `el.set({ points })` (level 9). Things that change often: `el.set`, not `retoon.update()`.
 
 ## Check before you hand it over
 
