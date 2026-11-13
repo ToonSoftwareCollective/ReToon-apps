@@ -28,7 +28,10 @@ blijven. De huidige app-API ondersteunt geen kleurdropdown; kleuren zijn tekstve
 ## Werking en validatie
 
 De uur- en minuutwijzer worden iedere seconde bijgewerkt met `el.set` op bestaande
-tekenelementen. Er zijn geen netwerkverzoeken, services, credentials of
+tekenelementen. Dikkere wijzers bestaan uit dicht overlappende cirkels met
+afgeronde uiteinden. De geometrische golving tussen cirkels blijft kleiner dan
+0,15 schermpixel bij ondersteunde kaartafmetingen; ReToon verzorgt de rastering.
+Er zijn geen netwerkverzoeken, services, credentials of
 apparaatgebonden instellingen. Tekenfuncties werken ook zonder ingevulde instellingen.
 
 Het ontwerp is visueel bevestigd op Toon 2 met ReToon 1.38. De achtergrondkeuze

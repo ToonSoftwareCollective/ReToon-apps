@@ -1,4 +1,5 @@
-// Overlapping circles form hands using the documented set({ x, y }) options.
+// Closely overlapping circles form rounded hands using documented set({ x, y }).
+// Centre spacing <= 17% of the diameter limits edge scalloping to subpixel size.
 const themes = new Set(["text", "muted", "accent", "ok", "warn", "bad", "card", "background"]);
 const palette = { wit: "#ffffff", grijs: "#999999", donkerblauw: "#183b73", rood: "#e53935", donkergroen: "#176b3a" };
 let faces = [];
@@ -15,7 +16,7 @@ function point(cx, cy, distance, turns) {
 }
 
 function hand(el, face, length, thickness, tint) {
-  const count = Math.ceil(length / thickness * 1.5) + 1;
+  const count = Math.ceil(length / (thickness * 0.17)) + 1;
   const dots = [];
   for (let i = 0; i < count; i++) {
     dots.push(el.circle({ x: face.cx, y: face.cy, r: thickness / 2, bg: tint, border: 0 }));
@@ -66,8 +67,8 @@ function draw(el) {
     const b = point(face.cx, face.cy, r * 0.98, i / 60);
     el.line([a.x, a.y, b.x, b.y], { width: Math.max(1, r * (isHour ? 0.022 : 0.007)), color: isHour ? hours : minutes });
   }
-  face.hour = hand(el, face, r * 0.5, r * 0.05, hands);
-  face.minute = hand(el, face, r * 0.73, r * 0.032, hands);
+  face.hour = hand(el, face, r * 0.5, Math.max(2, r * 0.08), hands);
+  face.minute = hand(el, face, r * 0.73, Math.max(2, r * 0.055), hands);
   el.circle({ x: face.cx, y: face.cy, r: r * 0.045, bg: hands, border: 0 });
   faces.push(face);
 }
