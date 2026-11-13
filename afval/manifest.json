@@ -1,10 +1,10 @@
 {
 	"id": "afval",
 	"name": "Afvalkalender",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"api": 7,
 	"main": "main.js",
-	"description": "Shows when each kind of waste is collected, from Home Assistant sensors that count the days until the next collection (attribute Days_until, as made by the Afvalbeheer integration). The card shows the next collection; tap it for the next six months. Pick one sensor per kind of waste: colour and icon follow the name (gft, pmd, restafval, papier, ...) unless you set them. For the next months also pick the calendar of the integration.",
+	"description": "Shows when each kind of waste is collected, from Home Assistant sensors that count the days until the next collection (as made by the Afvalbeheer or the Afvalwijzer integration). The card shows the next collection; tap it for the next six months. Pick one sensor per kind of waste: colour and icon follow the name (gft, pmd, restafval, papier, ...) unless you set them. For the next months also pick the calendar of the integration.",
 	"author": "Stefan Verstege (newmedia)",
 	"tile": { "height": 150 },
 	"services": ["calendar.get_events"],
