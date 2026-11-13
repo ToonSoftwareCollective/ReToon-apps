@@ -1,0 +1,21 @@
+{
+  "id": "snapshotcamera",
+  "name": "SnapshotCamera",
+  "version": "1.1.1",
+  "api": 8,
+  "main": "main.js",
+  "description": "Een of twee camera's via de bestaande Home Assistant-koppeling, met eigen namen en vergroten. De kaart toont altijd snapshots; alleen het detailscherm kan optioneel MJPEG tonen. Geen apart HA-adres of token nodig. Vereist ReToon 1.39 of hoger.",
+  "author": "dEADkIRK",
+  "cameras": ["camera.*"],
+  "tile": { "height": 300 },
+  "settings": [
+    { "key": "camera1", "label": "Camera 1", "type": "entity", "default": "" },
+    { "key": "name1", "label": "Naam camera 1 (optioneel)", "type": "text", "default": "" },
+    { "key": "camera2", "label": "Camera 2", "type": "entity", "default": "" },
+    { "key": "name2", "label": "Naam camera 2 (optioneel)", "type": "text", "default": "" },
+    { "key": "twoCameras", "label": "Twee camera's tonen", "type": "bool", "default": true },
+    { "key": "every", "label": "Snapshots verversen na seconden (2–300)", "type": "number", "default": 5 },
+    { "key": "stream", "label": "Bewegend beeld alleen in detailscherm (MJPEG)", "type": "bool", "default": false },
+    { "key": "fps", "label": "Beelden per seconde bij MJPEG (1–10)", "type": "number", "default": 5 }
+  ]
+}
