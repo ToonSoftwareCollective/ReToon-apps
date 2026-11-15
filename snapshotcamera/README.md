@@ -4,6 +4,8 @@ Een of twee Home Assistant-camera's op je Toon, met eigen weergavenamen en autom
 
 Versie 1.1.2 vereist **ReToon 1.40 of hoger (app-API 9)**. API 9 is nodig om de volledige kaartachtergrond zwart te maken; de native camerafunctie zelf bestaat vanaf API 8. De overzichtskaart toont altijd snapshots. Bewegend MJPEG-beeld is optioneel en uitsluitend beschikbaar in het detailscherm van de aangeklikte camera. Versie 1.1.1 is geïnstalleerd op Toon 2/ReToon 1.39; lokale tests en de opstartcontrole in de echte schermruntime slagen. De laatste MJPEG-weergave is nog niet afzonderlijk visueel bevestigd. De eerdere snapshotversie werkte op Toon 2/ReToon 1.38. Toon 1 is niet getest.
 
+Versie 1.1.2 is technisch getest op Toon 2/ReToon 1.44: de echte schermruntime start zonder appfoutregels, de releasechecksums komen overeen en bestaande instellingen zijn behouden. Er is geen nieuwe visuele MJPEG-beoordeling of hardwarebenchmark uitgevoerd.
+
 ## Instellen
 
 Installeer de app en voeg een kaart van type **App** toe aan een pagina. Kies **SnapshotCamera**. Een brede, hoge kaart geeft twee beelden de meeste ruimte.
