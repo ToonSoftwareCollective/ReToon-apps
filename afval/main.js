@@ -1,7 +1,8 @@
 // Afvalkalender for ReToon. The card shows the next collection; the full screen
 // shows the next months. The next dates come from sensors that give
-// the days until the next collection (attribute Days_until, date in Sort_date as
-// yyyymmdd). The following months come from a Home Assistant calendar entity
+// the days until the next collection: Afvalbeheer (attribute Days_until, date
+// in Sort_date as yyyymmdd) or Afvalwijzer (attribute
+// days_until_collection_date, date as the state). The following months come from a Home Assistant calendar entity
 // (optional), read with retoon.call (calendar.get_events) over the Toon's own
 // connection to Home Assistant, so no token.
 
@@ -71,23 +72,47 @@ function key(y, m, d) {
 	return y + "-" + two(m + 1) + "-" + two(d);
 }
 
+// a number from an attribute, or NaN when it has none
+function num(v) {
+	return v === null || v === undefined || v === "" ? NaN : Number(v);
+}
+
+// the next collection of a sensor: { days, date } or null
+//   Afvalbeheer: Days_until, Sort_date (yyyymmdd)
+//   Afvalwijzer: days_until_collection_date, the date as the state
+function nextOf(st) {
+	const a = st && st.attributes;
+	if (!a) return null;
+	let days = num(a.Days_until), date = null;
+	if (isFinite(days)) {
+		const sd = num(a.Sort_date);
+		if (isFinite(sd) && sd > 0)
+			date = new Date(Math.floor(sd / 10000), Math.floor(sd / 100) % 100 - 1, sd % 100);
+	} else {
+		days = num(a.days_until_collection_date);
+		if (!isFinite(days)) return null;
+		const d = new Date(st.state);
+		if (isFinite(d.getTime())) date = d;
+	}
+	return { days: days, date: date };
+}
+
 // the streams that have a next collection, soonest first: { name, icon, color, days, date, index }
 function upcoming() {
 	const out = [];
 	streams().forEach((s, index) => {
 		const st = retoon.state(s.entity);
 		const a = st ? st.attributes : null;
-		const days = a ? Number(a.Days_until) : NaN;
-		if (!isFinite(days) || a.Days_until === null || a.Days_until === "") return;
-		const sd = Number(a.Sort_date);
+		const n = nextOf(st);
+		if (!n) return;
 		const name = nameOf(s);
 		out.push({
 			name: name,
 			icon: iconOf(s, name),
 			color: colorOf(s, name),
 			index: index,
-			days: days,
-			date: isFinite(sd) && sd > 0 ? new Date(Math.floor(sd / 10000), Math.floor(sd / 100) % 100 - 1, sd % 100) : null
+			days: n.days,
+			date: n.date
 		});
 	});
 	return out.sort((x, y) => x.days - y.days);
@@ -212,11 +237,15 @@ async function loadCalendar() {
 			{ entity_id: cal, start_date_time: iso(from), end_date_time: iso(to) }, { response: true });
 		const list = (r && r[cal] && r[cal].events) || [], map = {};
 		const names = streams().map(s => nameOf(s).toLowerCase());
+		const kinds = names.map(kindOf);
 		list.forEach(e => {
 			const day = String(e.start || "").slice(0, 10);
 			const sum = String(e.summary || "").trim().toLowerCase();
 			if (!day || !sum) return;
-			const i = names.findIndex(nm => nm === sum || sum.indexOf(nm) >= 0 || nm.indexOf(sum) >= 0);
+			// by name, else by kind of waste ("Dar: Plastic" for a stream called PMD)
+			let i = names.findIndex(nm => nm === sum || sum.indexOf(nm) >= 0 || nm.indexOf(sum) >= 0);
+			const k = i < 0 ? kindOf(sum) : null;
+			if (k) i = kinds.indexOf(k);
 			if (i >= 0) { (map[day] = map[day] || []); if (map[day].indexOf(i) < 0) map[day].push(i); }
 		});
 		events = map;

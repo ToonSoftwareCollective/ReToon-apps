@@ -25,7 +25,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REQUIRED = ("id", "name", "version", "api", "main", "description", "author")
 ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,46}$")
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
-SETTING_TYPES = {"text", "secret", "number", "bool", "entity", "entities"}
+SETTING_TYPES = {"text", "secret", "number", "bool", "entity", "entities", "color", "select"}
 SERVICE = re.compile(r"^[a-z0-9_]+\.([a-z0-9_]+|\*)$")	# "media_player.join", "media_player.*"
 CAMERA = re.compile(r"^camera\.([a-z0-9_]+|\*)$")		# "camera.door", "camera.*"
 MAX_SIZE = 1 << 20	# an app is packed to at most this many bytes
@@ -64,6 +64,13 @@ def check(folder, m, base=ROOT):
 		if "key" not in s or s.get("type") not in SETTING_TYPES:
 			fail(folder, f"setting {s.get('key')!r}: needs a key and a type "
 			     f"({', '.join(sorted(SETTING_TYPES))})")
+		elif s["type"] in ("color", "select") and m["api"] < 9:
+			fail(folder, f"setting {s['key']!r}: type {s['type']!r} needs \"api\" 9 or higher")
+		elif s["type"] == "select":
+			opts = s.get("options")
+			if not isinstance(opts, list) or not opts or not all(
+					isinstance(o, (str, int, float)) or (isinstance(o, dict) and "value" in o) for o in opts):
+				fail(folder, f"setting {s['key']!r}: a select needs \"options\", a list of values or of {{ value, label }}")
 
 
 def pack(folder):
