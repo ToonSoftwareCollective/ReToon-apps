@@ -1,10 +1,10 @@
 {
   "id": "snapshotcamera",
   "name": "SnapshotCamera",
-  "version": "1.1.1",
-  "api": 8,
+  "version": "1.1.2",
+  "api": 9,
   "main": "main.js",
-  "description": "Een of twee camera's via de bestaande Home Assistant-koppeling, met eigen namen en vergroten. De kaart toont altijd snapshots; alleen het detailscherm kan optioneel MJPEG tonen. Geen apart HA-adres of token nodig. Vereist ReToon 1.39 of hoger.",
+  "description": "Een of twee camera's via de bestaande Home Assistant-koppeling, met eigen namen en vergroten. De kaart toont altijd snapshots; alleen het detailscherm kan optioneel MJPEG tonen. Geen apart HA-adres of token nodig. Vereist ReToon 1.40 of hoger.",
   "author": "dEADkIRK",
   "cameras": ["camera.*"],
   "tile": { "height": 300 },

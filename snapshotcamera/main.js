@@ -2,6 +2,7 @@
 // This app never reads picture URLs, HA addresses or camera access tokens.
 const S = () => retoon.settings;
 let selected = 0;
+let lastDisplayState = "";
 
 function cameras() {
     return S().twoCameras ? [S().camera1, S().camera2] : [S().camera1];
@@ -24,13 +25,34 @@ function frameRate() {
     return Math.round(bounded(S().fps, 5, 1, 10));
 }
 
+function cameraName(id, index, state) {
+    const customName = String(S()["name" + (index + 1)] || "").trim();
+    return customName || state && state.name || (id ? "Camera " + (index + 1) : "Camera instellen");
+}
+
+function displayState() {
+    return JSON.stringify(cameras().map((id, index) => {
+        const state = validCamera(id) ? retoon.state(id) : null;
+        return [cameraName(id, index, state), Boolean(state && state.state === "unavailable")];
+    }));
+}
+
+function cameraChanged() {
+    // Native images manage frames and authentication independently of redraws.
+    // Ignore token/attribute changes that do not affect our labels or visibility.
+    const next = displayState();
+    if (next !== lastDisplayState) {
+        lastDisplayState = next;
+        retoon.update();
+    }
+}
+
 function panel(el, id, index, x, width, height, large) {
     const streaming = large && Boolean(S().stream);
     const valid = validCamera(id);
     const state = valid ? retoon.state(id) : null;
     const box = el.box({ x, y: 0, w: width, h: height, bg: "#000000", border: 0, radius: 0 });
-    const customName = String(S()["name" + (index + 1)] || "").trim();
-    const name = customName || state && state.name || (id ? "Camera " + (index + 1) : "Camera instellen");
+    const name = cameraName(id, index, state);
     box.icon("mdi:video", { x: 12, y: 10, size: "small", color: "accent" });
     box.text(name, { x: 46, y: 13, w: Math.max(0, width - 58), font: "head" });
     const imageHeight = Math.max(1, height - 86);
@@ -73,7 +95,8 @@ function draw(el, full) {
 
 function follow() {
     selected = 0;
-    retoon.watch([...new Set(cameras().filter(validCamera))], () => retoon.update());
+    lastDisplayState = displayState();
+    retoon.watch([...new Set(cameras().filter(validCamera))], cameraChanged);
     retoon.update();
 }
 retoon.tile(el => draw(el, false));

@@ -2,7 +2,7 @@
 
 Een of twee Home Assistant-camera's op je Toon, met eigen weergavenamen en automatisch verversen. Tik op een camera om uitsluitend dat beeld in het detailscherm te bekijken. De ruimte rond de beelden is zwart.
 
-Versie 1.1.1 vereist **ReToon 1.39 of hoger (app-API 8)**. De overzichtskaart toont altijd snapshots. Bewegend MJPEG-beeld is optioneel en uitsluitend beschikbaar in het detailscherm van de aangeklikte camera. Versie 1.1.1 is geïnstalleerd op Toon 2/ReToon 1.39; lokale tests en de opstartcontrole in de echte schermruntime slagen. De laatste MJPEG-weergave is nog niet afzonderlijk visueel bevestigd. De eerdere snapshotversie werkte op Toon 2/ReToon 1.38. Toon 1 is niet getest.
+Versie 1.1.2 vereist **ReToon 1.40 of hoger (app-API 9)**. API 9 is nodig om de volledige kaartachtergrond zwart te maken; de native camerafunctie zelf bestaat vanaf API 8. De overzichtskaart toont altijd snapshots. Bewegend MJPEG-beeld is optioneel en uitsluitend beschikbaar in het detailscherm van de aangeklikte camera. Versie 1.1.1 is geïnstalleerd op Toon 2/ReToon 1.39; lokale tests en de opstartcontrole in de echte schermruntime slagen. De laatste MJPEG-weergave is nog niet afzonderlijk visueel bevestigd. De eerdere snapshotversie werkte op Toon 2/ReToon 1.38. Toon 1 is niet getest.
 
 ## Instellen
 
@@ -35,7 +35,7 @@ Het manifest vereist API 8 en declareert `cameras: ["camera.*"]`, omdat de gebru
 
 Snapshots gebruiken `el.image({ camera: id, every, ... })`. MJPEG gebruikt `el.image({ camera: id, stream: true, fps, ... })`. Er wordt geen url, header of toegangstoken door de app samengesteld of doorgegeven. ReToon beheert de gedeelde Home Assistant-verbinding, authenticatie en het laden/cachen/verversen van beelden. Volgens de API draait een stream uitsluitend terwijl het beeld zichtbaar is.
 
-`retoon.watch` volgt namen en beschikbaarheid, inclusief attribuutwijzigingen. Een nog niet geladen entiteitsstatus verhindert het native beeldverzoek niet: de imagefunctie kan de systeemverbinding gebruiken terwijl metadata nog binnenkomt. Een expliciet onbeschikbare camera krijgt een melding.
+`retoon.watch` volgt namen en beschikbaarheid, inclusief attribuutwijzigingen. De app vergelijkt uitsluitend de daadwerkelijk getoonde namen en beschikbaarheid voordat zij `retoon.update()` aanroept. Ongewijzigde metadata, een HA-naam achter een eigen weergavenaam en statuswissels tussen beschikbare toestanden veroorzaken geen volledige hertekening. Beeldframes en authenticatie worden onafhankelijk door ReToon bijgewerkt. Een nog niet geladen entiteitsstatus verhindert het native beeldverzoek niet: de imagefunctie kan de systeemverbinding gebruiken terwijl metadata nog binnenkomt. Een expliciet onbeschikbare camera krijgt een melding.
 
 De kaartklik registreert eerst de gekozen camera en laat vervolgens ReToons standaard kaartactie het detailscherm openen. Dat scherm tekent alleen de gekozen camera. JavaScript start geen fetch- of serviceverzoeken vanuit tekenfuncties. De ingebouwde imagefunctie verzorgt de netwerkverzoeken; er is geen extra tekentimer.
 
