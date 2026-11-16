@@ -6,6 +6,7 @@ and optionally a full screen that opens when the card is tapped.
 
 | App | What it does |
 |---|---|
+| [snapshotcamera](snapshotcamera) | One or two Home Assistant camera snapshots, custom names and optional MJPEG in single-camera details ([setup](snapshotcamera/README.md)) |
 | [buienradarweer](buienradarweer) | Current weather and a five-day forecast from a Home Assistant weather entity ([setup](buienradarweer/README.md)) |
 | [afval](afval) | When each kind of waste is collected: the next collection on a card, the next six months on the full screen ([setup](docs/afval-app.md)) |
 | [spotenergy](spotenergy) | Dynamic electricity prices for the Netherlands, with taxes, as a card and a full-screen graph |
