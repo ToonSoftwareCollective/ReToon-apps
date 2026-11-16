@@ -10,8 +10,7 @@ and optionally a full screen that opens when the card is tapped.
 | [afval](afval) | When each kind of waste is collected: the next collection on a card, the next six months on the full screen ([setup](docs/afval-app.md)) |
 | [spotenergy](spotenergy) | Dynamic electricity prices for the Netherlands, with taxes, as a card and a full-screen graph |
 | [powerflow](powerflow) | Where the power in your home comes from and goes to, with moving dots |
-| [clock-studio](clock-studio) | Configurable analog, digital, world-map and calendar clock ([setup](docs/clock-studio/README.md)) |
-| [clock-studio-dim](clock-studio-dim) | Independent clock for the dimmed home page, with a black card ([setup](docs/clock-studio/README.md)) |
+| [clock-studio](clock-studio) | Configurable analog, digital, world-map and calendar clock with independent settings per card ([setup](docs/clock-studio/README.md)) |
 | [sonos](sonos) | Control Sonos speakers through Home Assistant: the playing group, volume, play/pause, building groups and choosing content ([setup](docs/sonos-app.md)) |
 
 ## Installing an app

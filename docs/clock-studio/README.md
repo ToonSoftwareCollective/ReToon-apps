@@ -1,45 +1,41 @@
-# Clock Studio Duo
+# Clock Studio
 
-Two independently configurable clock apps by Nomzi Design: `clock-studio` for a normal page and `clock-studio-dim` for a dimmed home page.
+One configurable clock app by Nomzi Design for normal and dimmed ReToon pages. Each card has its own appearance and the full screen uses the settings of the tapped card.
 
 ## Installation
 
-After this contribution is merged and published, install either or both apps under **Apps → Available** in the ReToon web interface. Add an **App** card to a page and choose the installed clock. For the dim variant, place it on the page configured as the dimmed home page. ReToon controls brightness and page switching; these apps do not change either.
+Requires **ReToon 1.50 or newer (API 10)**. After the contribution is merged and published, install **Clock Studio** once under Apps → Available in the ReToon web interface. Add an App card to a page and select Clock Studio. Edit that card to choose its own face, theme, colours, seconds, date and other options.
 
-| App | Minimum version | Default face |
-| --- | --- | --- |
-| Clock Studio | ReToon 1.40 / API 9 | World map |
-| Clock Studio Gedimd | ReToon 1.40 / API 9 | Minimal analog |
+For a dimmed home page, add another card using the very same Clock Studio app. For example, select the minimal analog face, white theme, black background (`#000000`) and corner radius 0. ReToon controls brightness and page switching; the clock app does not change either.
 
-Both clocks work without Home Assistant. The optional calendar requires an existing Home Assistant connection and permission for `calendar.get_events`. It reads events and does not modify them. Time comes from the Toon's local system clock, including on the world-map face: this is not a multi-time-zone clock.
+### Upgrading from Clock Studio Duo 1.4.6
+
+The separate `clock-studio-dim` app is no longer needed. Before removing it from your Toon, note its existing settings/profile. Add or edit a Clock Studio card on your dimmed page and copy those settings to its card editor. Do the same for your normal clock card if it previously used app-wide settings. Both cards can now be configured independently. Verify the replacement works before removing the old dim app. The existing global calendar entity remains under Apps.
 
 ## Settings
 
-The **Wijzerplaat** dropdown (`layout`): `world`, `minimal`, `classic`, `square-small`, `square`, `digital`, `stacked`, `calendar`, or `auto`.
+**Shared under Apps:** optional Home Assistant calendar entity, look-ahead window (1–60 days) and whether appointment titles are shown. The clock works without Home Assistant; the optional integration only reads events via `calendar.get_events`.
 
-The **Kleurstijl** dropdown (`theme`): `blauw`, `paars`, `wit`, `rood`, or `groen`. Native colour pickers override the theme; choose Standard to use the theme/default colours. Date and seconds can be switched independently. Digital clocks use seven-segment digits; the seconds setting blinks the colon in the horizontal digital face.
+**Per card in the card editor:** face (`layout`), colour theme, individual colours, seconds, date, title, 12/24-hour time, scale, corner radius and optional advanced profile. Choose Standard for a colour to use the default/theme instead.
 
-The calendar face combines an analog clock with the current month. An optional `calendar.…` entity adds event dots and, when space permits, upcoming appointments. Small cards fall back to simpler faces; tapping the card opens the larger view.
+- Faces: `world`, `minimal`, `classic`, `square-small`, `square`, `digital`, `stacked`, `calendar`, and `auto`.
+- Themes: `blauw`, `paars`, `wit`, `rood`, and `groen`.
+- The digital clocks use classic chamfered seven-segment LED digits. The seconds setting blinks the colon in the horizontal digital face.
+- The calendar combines an analog clock with the current month. An optional calendar entity adds event dots and, when space permits, upcoming appointments.
 
-Each app has its own settings. Download [Instellen.html](Instellen.html) and open it locally for advanced colours, hand styles, scale, location marker and calendar preferences. Paste the generated JSON into that app's **Uitgebreid profiel** field. This profile overrides the simple settings; clear it, or remove its layout or colour keys, to let the corresponding dropdowns/pickers take effect again. For a fully black dim card use no profile or set its background to `#000000`.
+Small cards fall back to simpler faces; tapping opens a larger view with the same card's settings. The world-map face shows the local system time, not multiple time zones.
 
-The world-map example location is Amsterdam. Change `place`, `latitude`, and `longitude` in the advanced profile to set your own label and marker. No location lookup or external map request is made.
+### Advanced customization
 
-## Release 1.4.6
+Download [Instellen.html](Instellen.html) and open it locally for advanced hand styles, colours, scale and world-map location. Paste the generated JSON into **Uitgebreid profiel** in the specific card's editor. The profile overrides that card's visual settings; clear it or remove the corresponding keys to use the dropdowns and colour pickers again. Calendar preferences are shared under Apps, not in the profile.
 
-- Both apps require API 9 (ReToon 1.40+).
-- Analog hands and text are updated in place with `el.set`; the static dial and world map no longer rebuild on clock ticks.
-- The digital display now uses seven retained boxes per digit, plus two colon dots; only changed segments are recoloured.
-- Calendar layout redraws only when the date or event dots change, or settings/page layout require it. Upcoming appointment text updates in place.
-- Clock faces and themes use native dropdowns; individual colours use native colour pickers.
+The map's example location is Amsterdam. Change `place`, `latitude` and `longitude` in the advanced profile to set the marker and label. No location lookup or external map request is made.
 
-Validation: manifest and JavaScript syntax checks, and simulated retained-element updates. A physical test on both Toon models, including settings changes, is still needed.
+## Release 1.4.7
 
-## Release 1.4.5
-
-Initial catalogue submission based on the locally installed Duo 1.4.4. Replaces the developer's location defaults with an Amsterdam example and includes public installation instructions. No personal installer, network address, tokens or agenda data are distributed.
-
-The installed 1.4.4 calendar view was observed on a Toon 2 running ReToon 1.48. The 1.4.5 package has static validation and simulated drawing checks; a full device test of this exact version, other faces, optional calendar connection and Toon 1 is still required. During screenshot preparation, saving a different face did not change the running calendar view. This needs verification before merging; original settings were restored.
+- Consolidated Clock Studio Duo into a single app using API 10's `cardSettings`. Appearance and full-screen settings are independent for every card; Home Assistant calendar settings are shared.
+- Restored the classic chamfered LED digits with three retained elements per logical segment (84 for the four digits, plus two colon dots). Only changed segments are recoloured. Clock hands, text and the static world map continue to update without routine full redraws.
+- Validation: JavaScript syntax and simulated drawing/tick tests covering 108 combinations of face, size, theme and seconds setting; additional tests cover simultaneous independent cards/full screen, editing one card, stale handles, month rollover and mocked calendar refreshes. Physical verification of this release on ReToon 1.50 / Toon 1 and Toon 2 is still required.
 
 ## Licence and attribution
 
@@ -47,8 +43,8 @@ GPL-2.0-or-later, following this repository's default licence. World-map coordin
 
 ## Screenshots
 
-Captured from the live ReToon web interface with installed Clock Studio 1.4.4. The calendar image is a small browser preview, not a native-resolution export.
+Earlier Clock Studio 1.4.4 examples from the live ReToon web interface (the settings editor shown predates API 10).
 
 ![Calendar on Toon 2](screenshots/calendar-toon2.png)
 
-![Clock Studio settings](screenshots/settings.png)
+![Original settings](screenshots/settings.png)
