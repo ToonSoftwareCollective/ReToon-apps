@@ -65,6 +65,7 @@ The folder name is the app's `id`: lower case letters, digits and `-`.
 | `settings` | What the user can set in the web interface, see below |
 | `services` | The Home Assistant services the app calls with `retoon.call` (level 7), for example `["media_player.join", "media_player.unjoin"]`, or `["media_player.*"]` for a whole domain. Other services are refused. The web interface shows the list with the app, also before it is installed, so list only what the app needs |
 | `cameras` | The Home Assistant cameras the app shows with `el.image({ camera })` (level 8), for example `["camera.door"]`, or `["camera.*"]` for any camera, as when the user picks it in the settings. Other cameras are refused; the web interface shows the list with the app |
+| `cardSettings` | Settings per card (level 10), see [Settings per card](#settings-per-card) |
 
 ### Settings
 
@@ -85,6 +86,29 @@ The web interface makes a form from `settings`. The values are in
 `units` (with `entity` and `entities`) limits the picker to entities in those
 units, e.g. `["W", "kW"]`. See `powerflow/manifest.json` for an `entities`
 setting with fields.
+
+### Settings per card
+
+An app can be placed on more than one card, for example a clock on a page
+and another on the dimmed home page. With `cardSettings` (level 10) each
+card can look different: what it lists is set in the card's own editor (on
+the page, not under Apps), the same types as `settings` except `secret`.
+
+```json
+"settings": [
+	{ "key": "calendar", "label": "Calendar", "type": "entity", "default": "" }
+],
+"cardSettings": [
+	{ "key": "face", "label": "Clock face", "type": "select", "options": ["analog", "digital"], "default": "analog" },
+	{ "key": "color", "label": "Colour", "type": "color", "default": "" }
+]
+```
+
+The app reads them from `card.settings` in `retoon.tile((el, card) => ...)`
+and `retoon.screen((el, card) => ...)` (the card that was tapped):
+`retoon.settings` with this card's values over them. So use
+`card.settings.face` and `card.settings.calendar`; `retoon.settings` has
+only what is the same for every card.
 
 ## The code
 
@@ -119,8 +143,8 @@ be drawn.
 
 | | |
 |---|---|
-| `retoon.tile(fn)` | `fn(el, card)` draws the card. `card` is the card's configuration from the page (`{ type, app, height, ... }`) |
-| `retoon.screen(fn)` | `fn(el)` draws the full screen. Without it, tapping the card does nothing. The screen has the app's name and a Close button above the drawing area |
+| `retoon.tile(fn)` | `fn(el, card)` draws the card. `card` is the card's configuration from the page (`{ type, app, height, ... }`); from level 10 `card.settings` is the app's settings with this card's own over them (see [Settings per card](#settings-per-card)) |
+| `retoon.screen(fn)` | `fn(el, card)` draws the full screen. Without it, tapping the card does nothing. The screen has the app's name and a Close button above the drawing area. `card` (level 10): the card that was tapped, with its `settings` as for `retoon.tile` |
 | `retoon.update()` | Draw the card(s) and the open full screen again, soon (not during this call) |
 | `retoon.settings` | The settings: saved values over the manifest's defaults |
 | `retoon.onSettings(fn)` | `fn()` is called after the user saved new settings; `retoon.settings` already has them |
@@ -307,6 +331,7 @@ start it.
 | 7 | `retoon.call` and the manifest's `services`; `retoon.watch` also reports attribute changes (ReToon 1.36 and later) |
 | 8 | `el.image` with `camera`, `stream` and `fps`, and the manifest's `cameras` (ReToon 1.39 and later) |
 | 9 | `el.set({ bg })` on the tile's own `el` colours the whole card; `el.set({ points })` moves a line; `el.set` keeps a circle's `x`, `y` as its centre; settings of type `color` and `select`; the dashboard's colour names (ReToon 1.40 and later) |
+| 10 | The manifest's `cardSettings`: settings per card, in `card.settings`; `retoon.screen`'s `fn` gets the tapped card too (ReToon 1.50 and later) |
 
 ## Trying it, and publishing it
 

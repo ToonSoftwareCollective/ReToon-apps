@@ -71,7 +71,8 @@ Assistant services the app calls with `retoon.call`, as `"domain.service"`
 or `"domain.*"`; list only what it needs, the user sees the list),
 `cameras` (level 8: the Home Assistant cameras the app shows with
 `el.image({ camera })`, `"camera.door"` or `"camera.*"` for any, as when the
-user picks the camera in the settings).
+user picks the camera in the settings), `cardSettings` (level 10: settings
+per card, same format as `settings`, no `secret`; see below).
 
 Setting types: `text`, `secret` (password field), `number`, `bool`,
 `entity` (picks one Home Assistant entity id; `units` filters the list),
@@ -82,13 +83,23 @@ the app's own) and `select` (`options`: values or `{ value, label }`; the
 value is the chosen one). Every setting has
 `key` and `label`; give a `default`.
 
+Settings per card (level 10): an app placed on several cards (a clock on a
+page and on the dimmed home page) can look different on each.
+`cardSettings` lists what is set per card, in the card's own editor; the
+rest stays in `settings`, set once under Apps. The app reads them from
+`card.settings`, which `retoon.tile` and `retoon.screen` give it: the app's
+`settings`, with the card's own over them. Draw from `card.settings`, not
+`retoon.settings`, for anything that can differ per card.
+
 ## The interface
 
 ### retoon
 
 ```
-retoon.tile(fn)            fn(el, card): draw the card. card = the card's JSON from the page
-retoon.screen(fn)          fn(el): draw the full screen (optional; without it a tap does nothing)
+retoon.tile(fn)            fn(el, card): draw the card. card = the card's JSON from the page;
+                           card.settings = the app's settings with this card's own over them (level 10)
+retoon.screen(fn)          fn(el, card): draw the full screen (optional; without it a tap does
+                           nothing); card = the card that was tapped, as for retoon.tile (level 10)
 retoon.update()            redraw the card(s) and the open full screen, soon (async)
 retoon.settings            object: saved settings over the manifest's defaults, by key
 retoon.onSettings(fn)      fn(): the user saved new settings (retoon.settings has them)
@@ -242,6 +253,8 @@ cards are dark grey (`card`).
   card; `el.set({ points })` moves a line (a hand, a needle); `el.set` keeps
   a circle's `x`, `y` as its centre; setting types `color` and `select`;
   colours may also be the dashboard's names (`red`, `teal`, `white`...).
+- 10 (ReToon 1.50): the manifest's `cardSettings`: settings per card, in
+  `card.settings`; `retoon.screen`'s fn gets the tapped card too.
 
 ## The shape of an app
 

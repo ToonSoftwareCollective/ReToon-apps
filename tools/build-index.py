@@ -60,7 +60,15 @@ def check(folder, m, base=ROOT):
 		fail(folder, '"cameras" must be a list like ["camera.door"] or ["camera.*"]')
 	if cameras and m["api"] < 8:
 		fail(folder, '"cameras" needs "api" 8 or higher (el.image with camera)')
-	for s in m.get("settings", []):
+	card_settings = m.get("cardSettings", [])
+	if not isinstance(card_settings, list):
+		fail(folder, '"cardSettings" must be a list, as "settings"')
+	if card_settings and m["api"] < 10:
+		fail(folder, '"cardSettings" needs "api" 10 or higher (settings per card)')
+	for s in card_settings:
+		if isinstance(s, dict) and s.get("type") == "secret":
+			fail(folder, f"card setting {s.get('key')!r}: a secret cannot be per card (the page shows it)")
+	for s in m.get("settings", []) + card_settings:
 		if "key" not in s or s.get("type") not in SETTING_TYPES:
 			fail(folder, f"setting {s.get('key')!r}: needs a key and a type "
 			     f"({', '.join(sorted(SETTING_TYPES))})")
