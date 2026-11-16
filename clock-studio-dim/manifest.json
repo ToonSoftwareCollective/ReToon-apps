@@ -1,0 +1,53 @@
+{
+  "id": "clock-studio-dim",
+  "name": "Clock Studio Gedimd",
+  "version": "1.4.5",
+  "api": 9,
+  "main": "main.js",
+  "description": "Klok voor je gedimde startpagina, met volledig zwarte ReToon-tegel. Vereist ReToon 1.40+. Wijzerplaat en kleuren vrij instelbaar.",
+  "author": "Nomzi Design",
+  "tile": {
+    "height": 290
+  },
+  "settings": [
+    {
+      "key": "layout",
+      "label": "Wijzerplaat: world / minimal / classic / square-small / square / digital / stacked / calendar / auto",
+      "type": "text",
+      "default": "minimal"
+    },
+    {
+      "key": "theme",
+      "label": "Kleurstijl: blauw / paars / wit / rood / groen",
+      "type": "text",
+      "default": "wit"
+    },
+    {
+      "key": "show_seconds",
+      "label": "Secondenwijzer / knipperende puntjes bij digitaal",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "show_date",
+      "label": "Datum tonen",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "calendar_entity",
+      "label": "Optionele HA-agenda (calendar.…)",
+      "type": "entity",
+      "default": ""
+    },
+    {
+      "key": "advanced_profile",
+      "label": "Uitgebreid profiel (optioneel; via Instellen.html)",
+      "type": "text",
+      "default": ""
+    }
+  ],
+  "services": [
+    "calendar.get_events"
+  ]
+}

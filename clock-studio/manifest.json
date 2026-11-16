@@ -1,0 +1,53 @@
+{
+  "id": "clock-studio",
+  "name": "Clock Studio",
+  "version": "1.4.5",
+  "api": 7,
+  "main": "main.js",
+  "description": "Eén eigen wijzerplaat voor alle tegelformaten. Plaats deze app op je gewone pagina. Clock Studio Gedimd heeft eigen instellingen.",
+  "author": "Nomzi Design",
+  "tile": {
+    "height": 290
+  },
+  "settings": [
+    {
+      "key": "layout",
+      "label": "Wijzerplaat: world / minimal / classic / square-small / square / digital / stacked / calendar / auto",
+      "type": "text",
+      "default": "world"
+    },
+    {
+      "key": "theme",
+      "label": "Kleurstijl: blauw / paars / wit / rood / groen",
+      "type": "text",
+      "default": "blauw"
+    },
+    {
+      "key": "show_seconds",
+      "label": "Secondenwijzer / knipperende puntjes bij digitaal",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "show_date",
+      "label": "Datum tonen",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "calendar_entity",
+      "label": "Optionele HA-agenda (calendar.…)",
+      "type": "entity",
+      "default": ""
+    },
+    {
+      "key": "advanced_profile",
+      "label": "Uitgebreid profiel (optioneel; via Instellen.html)",
+      "type": "text",
+      "default": ""
+    }
+  ],
+  "services": [
+    "calendar.get_events"
+  ]
+}
