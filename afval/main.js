@@ -155,10 +155,13 @@ function drawTile(el) {
 	const first = list[0];
 	const same = list.filter(u => u.days === first.days);
 	const row0 = Object.assign({}, first, { name: same.map(u => u.name).join(" + ") });
+	// a taller card shows the following days too: as many rows as fit,
+	// 44 px apart, or a little closer (not under 36) when one more fits then
+	const ROW = 32, rest = list.slice(same.length);
+	const n = Math.min(1 + rest.length, Math.max(1, Math.floor((el.height - ROW) / 36) + 1));
+	const step = n > 1 ? Math.min(44, Math.floor((el.height - ROW) / (n - 1))) : 44;
 	row(el, row0, 0, el.width);
-	// a taller card shows the following days too
-	let y = 44, shown = same.length;
-	for (let i = shown; i < list.length && y + 44 <= el.height; i++, y += 44) row(el, list[i], y, el.width);
+	for (let i = 1; i < n; i++) row(el, rest[i - 1], i * step, el.width);
 }
 
 // ---- full screen: the next months
