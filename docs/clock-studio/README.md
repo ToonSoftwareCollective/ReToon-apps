@@ -8,22 +8,32 @@ After this contribution is merged and published, install either or both apps und
 
 | App | Minimum version | Default face |
 | --- | --- | --- |
-| Clock Studio | ReToon 1.36 / API 7 | World map |
+| Clock Studio | ReToon 1.40 / API 9 | World map |
 | Clock Studio Gedimd | ReToon 1.40 / API 9 | Minimal analog |
 
 Both clocks work without Home Assistant. The optional calendar requires an existing Home Assistant connection and permission for `calendar.get_events`. It reads events and does not modify them. Time comes from the Toon's local system clock, including on the world-map face: this is not a multi-time-zone clock.
 
 ## Settings
 
-`layout`: `world`, `minimal`, `classic`, `square-small`, `square`, `digital`, `stacked`, `calendar`, or `auto`.
+The **Wijzerplaat** dropdown (`layout`): `world`, `minimal`, `classic`, `square-small`, `square`, `digital`, `stacked`, `calendar`, or `auto`.
 
-`theme`: `blauw`, `paars`, `wit`, `rood`, or `groen`. Date and seconds can be switched independently. Digital clocks use seven-segment digits; the seconds setting blinks the colon in the horizontal digital face.
+The **Kleurstijl** dropdown (`theme`): `blauw`, `paars`, `wit`, `rood`, or `groen`. Native colour pickers override the theme; choose Standard to use the theme/default colours. Date and seconds can be switched independently. Digital clocks use seven-segment digits; the seconds setting blinks the colon in the horizontal digital face.
 
 The calendar face combines an analog clock with the current month. An optional `calendar.…` entity adds event dots and, when space permits, upcoming appointments. Small cards fall back to simpler faces; tapping the card opens the larger view.
 
-Each app has its own settings. Download [Instellen.html](Instellen.html) and open it locally for advanced colours, hand styles, scale, location marker and calendar preferences. Paste the generated JSON into that app's **Uitgebreid profiel** field. This profile overrides the simple settings; clear it to use those again. For a fully black dim card use no profile or set its background to `#000000`.
+Each app has its own settings. Download [Instellen.html](Instellen.html) and open it locally for advanced colours, hand styles, scale, location marker and calendar preferences. Paste the generated JSON into that app's **Uitgebreid profiel** field. This profile overrides the simple settings; clear it, or remove its layout or colour keys, to let the corresponding dropdowns/pickers take effect again. For a fully black dim card use no profile or set its background to `#000000`.
 
 The world-map example location is Amsterdam. Change `place`, `latitude`, and `longitude` in the advanced profile to set your own label and marker. No location lookup or external map request is made.
+
+## Release 1.4.6
+
+- Both apps require API 9 (ReToon 1.40+).
+- Analog hands and text are updated in place with `el.set`; the static dial and world map no longer rebuild on clock ticks.
+- The digital display now uses seven retained boxes per digit, plus two colon dots; only changed segments are recoloured.
+- Calendar layout redraws only when the date or event dots change, or settings/page layout require it. Upcoming appointment text updates in place.
+- Clock faces and themes use native dropdowns; individual colours use native colour pickers.
+
+Validation: manifest and JavaScript syntax checks, and simulated retained-element updates. A physical test on both Toon models, including settings changes, is still needed.
 
 ## Release 1.4.5
 

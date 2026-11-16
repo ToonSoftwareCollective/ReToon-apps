@@ -1,8 +1,8 @@
 {
   "id": "clock-studio",
   "name": "Clock Studio",
-  "version": "1.4.5",
-  "api": 7,
+  "version": "1.4.6",
+  "api": 9,
   "main": "main.js",
   "description": "Eén eigen wijzerplaat voor alle tegelformaten. Plaats deze app op je gewone pagina. Clock Studio Gedimd heeft eigen instellingen.",
   "author": "Nomzi Design",
@@ -12,15 +12,111 @@
   "settings": [
     {
       "key": "layout",
-      "label": "Wijzerplaat: world / minimal / classic / square-small / square / digital / stacked / calendar / auto",
-      "type": "text",
-      "default": "world"
+      "label": "Wijzerplaat",
+      "type": "select",
+      "default": "world",
+      "options": [
+        {
+          "value": "world",
+          "label": "Wereldkaart"
+        },
+        {
+          "value": "minimal",
+          "label": "Rond rustig"
+        },
+        {
+          "value": "classic",
+          "label": "Rond met cijfers"
+        },
+        {
+          "value": "square-small",
+          "label": "Vierkant compact"
+        },
+        {
+          "value": "square",
+          "label": "Rechthoekig"
+        },
+        {
+          "value": "digital",
+          "label": "Digitaal"
+        },
+        {
+          "value": "stacked",
+          "label": "Digitaal gestapeld"
+        },
+        {
+          "value": "calendar",
+          "label": "Klok en kalender"
+        },
+        {
+          "value": "auto",
+          "label": "Automatisch"
+        }
+      ]
     },
     {
       "key": "theme",
-      "label": "Kleurstijl: blauw / paars / wit / rood / groen",
-      "type": "text",
-      "default": "blauw"
+      "label": "Kleurstijl",
+      "type": "select",
+      "default": "blauw",
+      "options": [
+        {
+          "value": "blauw",
+          "label": "Blauw"
+        },
+        {
+          "value": "paars",
+          "label": "Paars"
+        },
+        {
+          "value": "wit",
+          "label": "Wit"
+        },
+        {
+          "value": "rood",
+          "label": "Rood"
+        },
+        {
+          "value": "groen",
+          "label": "Groen"
+        }
+      ]
+    },
+    {
+      "key": "background",
+      "label": "Achtergrond",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "foreground",
+      "label": "Wijzerplaat en tekst",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "accent",
+      "label": "Digitale tijd / accent",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "hour_color",
+      "label": "Uurwijzer",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "minute_color",
+      "label": "Minuutwijzer",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "second_color",
+      "label": "Secondenwijzer",
+      "type": "color",
+      "default": ""
     },
     {
       "key": "show_seconds",
@@ -42,7 +138,7 @@
     },
     {
       "key": "advanced_profile",
-      "label": "Uitgebreid profiel (optioneel; via Instellen.html)",
+      "label": "Uitgebreid profiel (optioneel; overschrijft standaardinstellingen)",
       "type": "text",
       "default": ""
     }
