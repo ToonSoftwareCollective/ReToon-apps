@@ -1,21 +1,121 @@
 {
   "id": "snapshotcamera",
   "name": "SnapshotCamera",
-  "version": "1.1.2",
-  "api": 9,
+  "version": "1.2.0",
+  "api": 10,
   "main": "main.js",
-  "description": "Een of twee camera's via de bestaande Home Assistant-koppeling, met eigen namen en vergroten. De kaart toont altijd snapshots; alleen het detailscherm kan optioneel MJPEG tonen. Geen apart HA-adres of token nodig. Vereist ReToon 1.40 of hoger.",
+  "description": "Een of twee camera's via de Home Assistant-systeemkoppeling. Standaard gebruikt elke kaart de instellingen onder Apps; schakel in de kaarteditor eigen instellingen in voor een onafhankelijke kaart. De kaart toont snapshots; MJPEG is alleen mogelijk in details. Vereist ReToon 1.50 of hoger.",
   "author": "dEADkIRK",
-  "cameras": ["camera.*"],
-  "tile": { "height": 300 },
+  "cameras": [
+    "camera.*"
+  ],
+  "tile": {
+    "height": 300
+  },
   "settings": [
-    { "key": "camera1", "label": "Camera 1", "type": "entity", "default": "" },
-    { "key": "name1", "label": "Naam camera 1 (optioneel)", "type": "text", "default": "" },
-    { "key": "camera2", "label": "Camera 2", "type": "entity", "default": "" },
-    { "key": "name2", "label": "Naam camera 2 (optioneel)", "type": "text", "default": "" },
-    { "key": "twoCameras", "label": "Twee camera's tonen", "type": "bool", "default": true },
-    { "key": "every", "label": "Snapshots verversen na seconden (2–300)", "type": "number", "default": 5 },
-    { "key": "stream", "label": "Bewegend beeld alleen in detailscherm (MJPEG)", "type": "bool", "default": false },
-    { "key": "fps", "label": "Beelden per seconde bij MJPEG (1–10)", "type": "number", "default": 5 }
+    {
+      "key": "camera1",
+      "label": "Camera 1",
+      "type": "entity",
+      "default": ""
+    },
+    {
+      "key": "name1",
+      "label": "Naam camera 1 (optioneel)",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "camera2",
+      "label": "Camera 2",
+      "type": "entity",
+      "default": ""
+    },
+    {
+      "key": "name2",
+      "label": "Naam camera 2 (optioneel)",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "twoCameras",
+      "label": "Twee camera's tonen",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "every",
+      "label": "Snapshots verversen na seconden (2–300)",
+      "type": "number",
+      "default": 5
+    },
+    {
+      "key": "stream",
+      "label": "Bewegend beeld alleen in detailscherm (MJPEG)",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "fps",
+      "label": "Beelden per seconde bij MJPEG (1–10)",
+      "type": "number",
+      "default": 5
+    }
+  ],
+  "cardSettings": [
+    {
+      "key": "useCardSettings",
+      "label": "Eigen instellingen voor deze kaart (uit = instellingen onder Apps)",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "camera1",
+      "label": "Camera 1",
+      "type": "entity",
+      "default": ""
+    },
+    {
+      "key": "name1",
+      "label": "Naam camera 1 (optioneel)",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "camera2",
+      "label": "Camera 2",
+      "type": "entity",
+      "default": ""
+    },
+    {
+      "key": "name2",
+      "label": "Naam camera 2 (optioneel)",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "twoCameras",
+      "label": "Twee camera's tonen",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "every",
+      "label": "Snapshots verversen na seconden (2–300)",
+      "type": "number",
+      "default": 5
+    },
+    {
+      "key": "stream",
+      "label": "Bewegend beeld alleen in detailscherm (MJPEG)",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "fps",
+      "label": "Beelden per seconde bij MJPEG (1–10)",
+      "type": "number",
+      "default": 5
+    }
   ]
 }
