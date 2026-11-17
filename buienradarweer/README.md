@@ -1,6 +1,6 @@
 # BuienradarWeer
 
-Actueel weer en vijfdaagse verwachting voor ReToon, via de bestaande Home Assistant-verbinding. Vereist app-API 7 (ReToon 1.36 of hoger); ReToon 1.38 wordt aanbevolen. Vanaf ReToon 1.37 wacht een serviceaanroep bij het opstarten op de HA-verbinding. Toon 1 is niet getest.
+Actueel weer en vijfdaagse verwachting voor ReToon, via de bestaande Home Assistant-verbinding. Vereist app-API 10 (ReToon 1.50 of hoger); ontwikkeld voor ReToon 1.53. Toon 1 is niet getest.
 
 De kaart toont een groot gekleurd weericoon, temperatuur met kleinere eenheid en, bij voldoende hoogte, luchtdruk en wind. Aantikken opent het detailscherm met gevoelstemperatuur, luchtdruk, luchtvochtigheid, windrichting, zicht en vijf dagen verwachting met minimum- en maximumtemperaturen en regenkans. Ontbrekende waarden verschijnen als een streepje.
 
@@ -14,13 +14,27 @@ De kaart toont een groot gekleurd weericoon, temperatuur met kleinere eenheid en
 {"type":"custom:retoon-app","app":"buienradarweer","height":220}
 ```
 
+## Instellingen per kaart
+
+Open de kaarteditor op de gewenste pagina in de ReToon-webinterface. De opties onder **Alleen voor deze kaart** gelden voor die kaart en het detailscherm dat je ermee opent:
+
+| Optie | Werking |
+| --- | --- |
+| Eigen plaatsnaam | Leeg gebruikt de standaard plaatsnaam onder Apps; bestaande kaarten behouden hun naam. |
+| Weergave | Automatisch kiest de temperatuurgrootte op basis van de ruimte; Compact houdt de cijfers kleiner. |
+| Kleur weericonen | Standaard volgt de weerconditie; kies desgewenst een vaste kleur. |
+| Achtergrondkleur | Een eigen achtergrond voor de kaart en het bijbehorende detailscherm; Standaard volgt het ReToon-thema. |
+| Luchtdruk / wind / gevoelstemperatuur | Kies welke aanvullende metingen op de kaart staan. Ze blijven beschikbaar in het detailscherm. |
+
+Metingen worden alleen getoond als er voldoende ruimte is. Meerdere kaarten delen dezelfde weerentiteit en voorspelling, maar kunnen eigen namen, kleuren en indelingen hebben. De databron blijft onder **Apps > BuienradarWeer**; je hoeft niet voor iedere kaart een nieuwe HA-koppeling te maken.
+
 Gebruik een weather-entiteit van de [Buienradar-integratie](https://www.home-assistant.io/integrations/buienradar/), of een andere integratie die dagelijkse voorspellingen ondersteunt. Er zijn geen afzonderlijke dagsensoren, minimumtemperatuursensoren, templates of eigen toegangstokens nodig.
 
 ## Gegevens en verversen
 
-Actuele metingen komen uit de attributen van de gekozen weather-entiteit. API 7 meldt ook wijzigingen in attributen: temperatuur, luchtdruk en andere waarden verversen via `retoon.watch`, zonder een periodieke tekentimer.
+Actuele metingen komen uit de attributen van de gekozen weather-entiteit. De API meldt ook wijzigingen in attributen: temperatuur, luchtdruk en andere waarden verversen via `retoon.watch`, zonder een periodieke tekentimer.
 
-De app gebruikt alleen de gedeclareerde service `weather.get_forecasts`, met type `daily` en een serviceantwoord, via `retoon.call` over de bestaande HA-verbinding. Voorspellingen worden bij opstarten en na een gewijzigde entiteitskeuze opgehaald, daarna elke 30 minuten. Na een fout wordt na een minuut opnieuw geprobeerd. Totdat dat lukt, toont de app een melding in plaats van verouderde voorspellingen. Actuele metingen blijven onafhankelijk daarvan beschikbaar.
+De app gebruikt alleen de gedeclareerde service `weather.get_forecasts`, met type `daily` en een serviceantwoord, via `retoon.call` over de bestaande HA-verbinding. Voorspellingen worden één keer gedeeld opgehaald bij opstarten en na een gewijzigde entiteitskeuze, daarna elke 30 minuten. Een andere kaarttitel, kleur of indeling wist de cache niet en veroorzaakt geen nieuw verzoek. Na een fout wordt na een minuut opnieuw geprobeerd. Totdat dat lukt, toont de app een melding in plaats van verouderde voorspellingen. Actuele metingen blijven onafhankelijk daarvan beschikbaar.
 
 De datum in de dagelijkse voorspelling bepaalt het daglabel; verlopen dagen worden niet getoond. De app toont maximaal vijf beschikbare dagen en verzint geen ontbrekende temperaturen of regenkansen. Eenheden komen uit Home Assistant en worden niet omgerekend. Gebruik op de Toon de tijdzone van de gekozen locatie.
 
@@ -28,9 +42,9 @@ De datum in de dagelijkse voorspelling bepaalt het daglabel; verlopen dagen word
 
 Alleen de gekozen weerentiteit wordt gevolgd. De enige gedeclareerde HA-service is `weather.get_forecasts`; de app stuurt geen thermostaat, lamp of ander apparaat aan. Er zijn geen eigen tokens, rechtstreekse externe netwerkverzoeken, telemetrie of loguitvoer van weergegevens. ReToon bewaart de instellingen lokaal. In de publicatieversie begint de entiteitskeuze leeg.
 
-## Bijwerken vanaf 1.0.x
+## Bijwerken vanaf 1.0.x of 1.1.x
 
-Je bestaande weerentiteit en plaatsnaam blijven bruikbaar. De twintig oude dagsensorkeuzes worden niet meer gebruikt; opnieuw selecteren is niet nodig. Verwijder de bijbehorende HA-sensoren alleen als je ze nergens anders meer gebruikt. De nieuwe versie heeft app-API 7 nodig en werkt niet op ReToon 1.32.
+Je bestaande weerentiteit en plaatsnaam blijven bruikbaar. De twintig oude dagsensorkeuzes worden niet meer gebruikt; opnieuw selecteren is niet nodig. Verwijder de bijbehorende HA-sensoren alleen als je ze nergens anders meer gebruikt. De nieuwe versie heeft app-API 10 nodig. Werk ReToon eerst bij naar 1.50 of hoger. Kaarten zonder eigen instellingen houden de standaardweergave; er is geen handmatige migratie van pagina-instellingen nodig.
 
 ## Ontwikkelen en installeren
 
