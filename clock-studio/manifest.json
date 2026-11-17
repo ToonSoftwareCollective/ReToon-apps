@@ -1,0 +1,187 @@
+{
+  "id": "clock-studio",
+  "name": "Clock Studio",
+  "version": "1.4.7",
+  "api": 10,
+  "main": "main.js",
+  "description": "Instelbare analoge en digitale klokken, wereldkaart en agenda. Elke tegel heeft zijn eigen wijzerplaat, kleuren en instellingen.",
+  "author": "Nomzi Design",
+  "tile": {
+    "height": 290
+  },
+  "settings": [
+    {
+      "key": "calendar_entity",
+      "label": "Optionele HA-agenda (calendar.…)",
+      "type": "entity",
+      "default": ""
+    },
+    {
+      "key": "agenda_days",
+      "label": "Afspraken vooruitkijken (1–60 dagen)",
+      "type": "number",
+      "default": 14
+    },
+    {
+      "key": "agenda_titles",
+      "label": "Titels van afspraken tonen",
+      "type": "bool",
+      "default": true
+    }
+  ],
+  "services": [
+    "calendar.get_events"
+  ],
+  "cardSettings": [
+    {
+      "key": "layout",
+      "label": "Wijzerplaat",
+      "type": "select",
+      "default": "world",
+      "options": [
+        {
+          "value": "world",
+          "label": "Wereldkaart"
+        },
+        {
+          "value": "minimal",
+          "label": "Rond rustig"
+        },
+        {
+          "value": "classic",
+          "label": "Rond met cijfers"
+        },
+        {
+          "value": "square-small",
+          "label": "Vierkant compact"
+        },
+        {
+          "value": "square",
+          "label": "Rechthoekig"
+        },
+        {
+          "value": "digital",
+          "label": "Digitaal"
+        },
+        {
+          "value": "stacked",
+          "label": "Digitaal gestapeld"
+        },
+        {
+          "value": "calendar",
+          "label": "Klok en kalender"
+        },
+        {
+          "value": "auto",
+          "label": "Automatisch"
+        }
+      ]
+    },
+    {
+      "key": "theme",
+      "label": "Kleurstijl",
+      "type": "select",
+      "default": "blauw",
+      "options": [
+        {
+          "value": "blauw",
+          "label": "Blauw"
+        },
+        {
+          "value": "paars",
+          "label": "Paars"
+        },
+        {
+          "value": "wit",
+          "label": "Wit"
+        },
+        {
+          "value": "rood",
+          "label": "Rood"
+        },
+        {
+          "value": "groen",
+          "label": "Groen"
+        }
+      ]
+    },
+    {
+      "key": "background",
+      "label": "Achtergrond",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "foreground",
+      "label": "Wijzerplaat en tekst",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "accent",
+      "label": "Digitale tijd / accent",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "hour_color",
+      "label": "Uurwijzer",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "minute_color",
+      "label": "Minuutwijzer",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "second_color",
+      "label": "Secondenwijzer",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "show_seconds",
+      "label": "Secondenwijzer / knipperende puntjes bij digitaal",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "show_date",
+      "label": "Datum tonen",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "title",
+      "label": "Optionele titel",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "clock_24",
+      "label": "24-uurs tijd (uit = 12 uur)",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "clock_scale",
+      "label": "Klokformaat (65–100%)",
+      "type": "number",
+      "default": 100
+    },
+    {
+      "key": "corner_radius",
+      "label": "Tegelhoeken (0 = vierkant)",
+      "type": "number",
+      "default": 16
+    },
+    {
+      "key": "advanced_profile",
+      "label": "Uitgebreid profiel voor deze tegel (optioneel; heeft voorrang)",
+      "type": "text",
+      "default": ""
+    }
+  ]
+}
