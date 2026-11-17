@@ -152,9 +152,16 @@ function toggleMember(k, g, m) {
 	}
 }
 
-// choose content: only remember it (shown green), nothing plays yet
+// choose content (shown green). While the group plays, switch to it right away, as before;
+// when it is paused or stopped, only remember it: the play button starts it
 function pickContent(g, name) {
 	chosen[g.leader] = name;
+	const st = stateOf(g.leader);
+	if (st && st.state === "playing") {
+		delete pending[g.leader];
+		call("select_source", g.leader, { source: name });
+		return;
+	}
 	pending[g.leader] = name;
 	retoon.update();
 }

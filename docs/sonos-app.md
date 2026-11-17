@@ -33,7 +33,7 @@ Then, in the Toon's web interface under **Apps**, fill in the Sonos app:
 
 Add an **App** card for `sonos` to a page. It fits well in 6 x 2 cells. You can add more than one, each with its own speakers.
 
-**Choosing content** only marks it (green); nothing plays yet. The play button then starts the marked content, and plays or pauses as usual after that. The mark is kept while the app runs.
+**Choosing content** marks it (green). While the group plays, it switches to it right away. When the group is paused or stopped, nothing starts yet: the play button starts the marked content, and plays or pauses as usual after that. The mark is kept while the app runs.
 
 ## Which services the app calls
 
