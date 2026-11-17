@@ -19,7 +19,7 @@ speakers (*Groep samenstellen*), shows the volume and the sources of the group
    `media_player` entities. Grouping (`media_player.join` / `unjoin`) and the
    source list (`media_player.select_source`) are the integration's own; the
    app only calls them.
-2. ReToon 1.36 or later, connected to Home Assistant. The app reads the
+2. ReToon 1.50 or later (settings per card), connected to Home Assistant. The app reads the
    speakers' states and sends its commands over that same connection with
    `retoon.call`, so it needs no address and no token of its own.
 
@@ -29,8 +29,11 @@ Then, in the Toon's web interface under **Apps**, fill in the Sonos app:
 |---|---|
 | Sonos speakers | Add each speaker (up to 6); the name is optional, "Sonos - " is cut off |
 | Volume step (%) | How much one tap on volume changes (default 5) |
+| Speakers of this card | Set in the card's own editor on the page, not under Apps. Leave empty to use the speakers above; fill it in to give this card its own, for example one card per room |
 
-Add an **App** card for `sonos` to a page. It fits well in 6 x 2 cells.
+Add an **App** card for `sonos` to a page. It fits well in 6 x 2 cells. You can add more than one, each with its own speakers.
+
+**Choosing content** only marks it (green); nothing plays yet. The play button then starts the marked content, and plays or pauses as usual after that. The mark is kept while the app runs.
 
 ## Which services the app calls
 

@@ -4,16 +4,33 @@
 // States come from Home Assistant (retoon.watch); commands go through
 // retoon.call, over the Toon's own connection to Home Assistant, so no token.
 
-const S = () => retoon.settings;
+// settings of the card that is being drawn (level 10: the card's own over the app's)
+let CARD = {};
+const S = () => CARD;
 
 const BTN = "#283040";	// the colour of the buttons the Toon draws itself, a bit lighter than a card
 
-let selected = "";	// a speaker of the group the user picked; "" = follow the one that plays
+const picked = {};	// per card (its speaker list): a speaker of the group the user picked; missing = follow the one that plays
+let KEY = "";		// the speaker list of the card that is being drawn
+const chosen = {};	// per group leader: the content the user tapped last (shown green)
+const pending = {};	// per group leader: chosen content that has not been started yet
+const known = {};	// the speaker lists of every card seen, so all of them are watched
 let error = "";		// why the last command failed
 let watched = "";	// the entity list given to retoon.watch
 
+// speakers of this card: its own list, else the one under Apps
 function players() {
-	return (S().players || []).filter(p => p && p.entity);
+	const own = (S().cardPlayers || []).filter(p => p && p.entity);
+	return own.length ? own : (S().players || []).filter(p => p && p.entity);
+}
+
+// start drawing a card: take its settings, remember its speakers, return its key
+function use(card) {
+	CARD = (card && card.settings) || retoon.settings;
+	const list = players().map(p => p.entity);
+	KEY = list.join(",");
+	if (!known[KEY]) { known[KEY] = list; watched = ""; follow(); }
+	return KEY;
 }
 
 function stateOf(id) {
@@ -51,7 +68,7 @@ function groups() {
 function currentGroup() {
 	const gs = groups();
 	if (!gs.length) return null;
-	const pick = gs.find(g => g.members.indexOf(selected) >= 0);
+	const pick = gs.find(g => g.members.indexOf(picked[KEY]) >= 0);
 	if (pick) return pick;
 	const playing = gs.find(g => {
 		const st = stateOf(g.leader);
@@ -113,8 +130,8 @@ async function call(service, entity, extra) {
 }
 
 // volume of every speaker in the group, one step up or down
-async function changeVolume(g, dir) {
-	const step = (+S().step || 5) / 100;
+async function changeVolume(g, dir, stepPct) {
+	const step = (+stepPct || 5) / 100;
 	for (const m of g.members) {
 		const v = volumeOf(m);
 		const next = Math.min(1, Math.max(0, +((v === null ? 0.3 : v) + dir * step).toFixed(2)));
@@ -123,16 +140,37 @@ async function changeVolume(g, dir) {
 }
 
 // add a speaker to the group, or take it out (a group keeps at least one speaker)
-function toggleMember(g, m) {
+function toggleMember(k, g, m) {
 	if (g.members.indexOf(m) >= 0) {
 		if (g.members.length < 2) return;
 		const rest = g.members.find(x => x !== m);
-		if (g.members.indexOf(selected) < 0 || selected === m) selected = rest;
+		if (g.members.indexOf(picked[k]) < 0 || picked[k] === m) picked[k] = rest;
 		call("unjoin", m);
 	} else {
-		selected = g.leader;
+		picked[k] = g.leader;
 		call("join", g.leader, { group_members: [m] });
 	}
+}
+
+// choose content: only remember it (shown green), nothing plays yet
+function pickContent(g, name) {
+	chosen[g.leader] = name;
+	pending[g.leader] = name;
+	retoon.update();
+}
+
+// play/pause: if content was chosen and the group is not playing, start that content
+// (Sonos starts a favourite as soon as it is selected); otherwise play or pause as usual
+function playPause(g) {
+	const st = stateOf(g.leader);
+	const playing = st && st.state === "playing";
+	const want = pending[g.leader];
+	if (want && !playing) {
+		delete pending[g.leader];
+		return call("select_source", g.leader, { source: want });
+	}
+	delete pending[g.leader];
+	return call("media_play_pause", g.leader);
 }
 
 // a button with an icon, drawn as a box that can be tapped
@@ -150,20 +188,22 @@ function controls(el, g, x, y, w, real) {
 	const gap = 8, n = 3;
 	const bw = Math.floor((w - gap * (n - 1)) / n);
 	const at = i => x + i * (bw + gap);
+	const pct = S().step;	// this card's volume step, read now: the tap comes later
 	if (real) {
 		const btn = (icon, i, fn) => el.button("", { x: at(i), y: y, w: bw }, fn).icon(icon, { align: "center", size: "mid", color: "text" });
-		btn("mdi:volume-minus", 0, () => changeVolume(g, -1));
-		btn(playing ? "mdi:pause" : "mdi:play", 1, () => call("media_play_pause", g.leader));
-		btn("mdi:volume-plus", 2, () => changeVolume(g, 1));
+		btn("mdi:volume-minus", 0, () => changeVolume(g, -1, pct));
+		btn(playing ? "mdi:pause" : "mdi:play", 1, () => playPause(g));
+		btn("mdi:volume-plus", 2, () => changeVolume(g, 1, pct));
 		return;
 	}
-	iconButton(el, "mdi:volume-minus", { x: at(0), y: y, w: bw }, () => changeVolume(g, -1));
+	iconButton(el, "mdi:volume-minus", { x: at(0), y: y, w: bw }, () => changeVolume(g, -1, pct));
 	iconButton(el, playing ? "mdi:pause" : "mdi:play", { x: at(1), y: y, w: bw, bg: "accent" },
-		() => call("media_play_pause", g.leader));
-	iconButton(el, "mdi:volume-plus", { x: at(2), y: y, w: bw }, () => changeVolume(g, 1));
+		() => playPause(g));
+	iconButton(el, "mdi:volume-plus", { x: at(2), y: y, w: bw }, () => changeVolume(g, 1, pct));
 }
 
-function drawTile(el) {
+function drawTile(el, card) {
+	use(card);
 	if (!players().length) {
 		el.text("Kies je Sonos-spelers onder Apps in de webinterface", { align: "center", color: "muted" });
 		return;
@@ -179,7 +219,8 @@ function drawTile(el) {
 	controls(el, g, 0, el.height - 48, el.width, true);
 }
 
-function drawScreen(root) {
+function drawScreen(root, card) {
+	const k = use(card);
 	// the same look as the card: everything on a card, with lighter buttons
 	const W = root.width - 24, H = root.height - 24;
 	const el = root.box({ x: 0, y: 0, w: root.width, h: root.height, bg: "card", radius: 12 }).box({ x: 12, y: 12, w: W, h: H });
@@ -202,7 +243,7 @@ function drawScreen(root) {
 			{ x: 12, y: 16, size: "mid", color: isCur ? "background" : "text" });
 		row.text(clip(groupName(g), 18), { x: 56, y: 8, color: isCur ? "background" : "text" });
 		row.text(stateText(s), { x: 56, y: 34, font: "small", color: isCur ? "background" : "muted" });
-		row.onClick(() => { selected = g.leader; retoon.update(); });
+		row.onClick(() => { picked[k] = g.leader; retoon.update(); });
 	});
 
 	// right: the picked group
@@ -226,7 +267,7 @@ function drawScreen(root) {
 			bg: inGroup ? "accent" : BTN, radius: 8 });
 		b.text(clip(shortName(p.entity), Math.floor(gw / 10) - 1),
 			{ align: "center", color: inGroup ? "background" : "text" });
-		b.onClick(() => toggleMember(cur, p.entity));
+		b.onClick(() => toggleMember(k, cur, p.entity));
 	});
 
 	// content: the sources / favourites of the group
@@ -236,11 +277,13 @@ function drawScreen(root) {
 	if (src.length) el.text("Content", { x: x0, y: gridBottom + 2, font: "small", color: "muted" });
 	const bw = Math.floor((w - 8) / 2);
 	src.slice(0, 6).forEach((name, i) => {
+		// green: what plays now, or what was last tapped (Sonos does not always report the favourite as its source)
+		const on = name === activeSrc || name === chosen[cur.leader];
 		const b = el.box({ x: x0 + (i % 2) * (bw + 8), y: gridBottom + 24 + Math.floor(i / 2) * 50, w: bw, h: 44,
-			bg: name === activeSrc ? "accent" : BTN, radius: 8 });
+			bg: on ? "ok" : BTN, radius: 8 });
 		b.text(clip(name, Math.floor(bw / 10) - 1),
-			{ align: "center", color: name === activeSrc ? "background" : "text" });
-		b.onClick(() => call("select_source", cur.leader, { source: name }));
+			{ align: "center", color: on ? "background" : "text" });
+		b.onClick(() => pickContent(cur, name));
 	});
 	if (error) el.text(clip(error, 60), { x: 0, y: H - 30, color: "bad" });
 }
@@ -248,11 +291,11 @@ function drawScreen(root) {
 // watch the chosen speakers and everyone who is in a group with them
 function follow() {
 	const set = {};
-	players().forEach(p => {
-		set[p.entity] = true;
-		const st = stateOf(p.entity);
+	Object.keys(known).forEach(k => known[k].forEach(id => {
+		set[id] = true;
+		const st = stateOf(id);
 		if (st && Array.isArray(st.attributes.group_members)) st.attributes.group_members.forEach(m => { set[m] = true; });
-	});
+	}));
 	const list = Object.keys(set).sort();
 	const key = list.join(",");
 	if (key === watched) return;
@@ -267,5 +310,4 @@ function onChange() {
 
 retoon.tile(drawTile);
 retoon.screen(drawScreen);
-retoon.onSettings(() => { error = ""; watched = ""; follow(); retoon.update(); });
-follow();
+retoon.onSettings(() => { error = ""; watched = ""; Object.keys(known).forEach(k => delete known[k]); retoon.update(); });
