@@ -1,28 +1,31 @@
 // API 8 resolves cameras through the system Home Assistant connection.
 // This app never reads picture URLs, HA addresses or camera access tokens.
-const DEFAULTS = { camera1: "", camera2: "", name1: "", name2: "", twoCameras: true,
-    every: 5, stream: false, fps: 5 };
-const KEYS = Object.keys(DEFAULTS);
 let selected = null;
 const contexts = new Map();
 let watchTimer = null;
 let watchKey = "[]";
 
-function settingsFor(card) {
-    // Read only our public fields, never legacy URLs or unrelated settings.
-    const source = card && card.settings && card.settings.useCardSettings === true
-        ? card.settings : retoon.settings;
-    const settings = {};
-    KEYS.forEach(key => { settings[key] = source && source[key] !== undefined ? source[key] : DEFAULTS[key]; });
-    return settings;
+function cameraList(settings) {
+    const own = Array.isArray(settings.cardCameras) ? settings.cardCameras
+        .filter(row => row && typeof row.entity === "string" && row.entity.trim()).slice(0, 2) : [];
+    if (own.length) return own.map(row => ({ entity: row.entity.trim(), name: row.name || "" }));
+    const shared = [{ entity: settings.camera1 || "", name: settings.name1 || "" }];
+    if (settings.twoCameras) shared.push({ entity: settings.camera2 || "", name: settings.name2 || "" });
+    return shared;
+}
+
+function detailVideo(settings) {
+    if (settings.cardDetailMode === "snapshot") return false;
+    if (settings.cardDetailMode === "mjpeg") return true;
+    return Boolean(settings.stream);
 }
 
 function settingsKey(settings) {
-    return JSON.stringify(KEYS.map(key => settings[key]));
+    return JSON.stringify([cameraList(settings), detailVideo(settings)]);
 }
 
 function cameras(settings) {
-    return settings.twoCameras ? [settings.camera1, settings.camera2] : [settings.camera1];
+    return cameraList(settings).map(row => row.entity);
 }
 
 function validCamera(id) {
@@ -43,7 +46,7 @@ function frameRate(settings) {
 }
 
 function cameraName(settings, id, index, state) {
-    const customName = String(settings["name" + (index + 1)] || "").trim();
+    const customName = String(cameraList(settings)[index].name || "").trim();
     return customName || state && state.name || (id ? "Camera " + (index + 1) : "Camera instellen");
 }
 
@@ -90,7 +93,7 @@ function remember(settings) {
 }
 
 function panel(el, settings, id, index, x, width, height, large) {
-    const streaming = large && Boolean(settings.stream);
+    const streaming = large && detailVideo(settings);
     const valid = validCamera(id);
     const state = valid ? retoon.state(id) : null;
     const box = el.box({ x, y: 0, w: width, h: height, bg: "#000000", border: 0, radius: 0 });
@@ -123,10 +126,9 @@ function panel(el, settings, id, index, x, width, height, large) {
     });
 }
 
-function draw(el, full, card) {
+function draw(el, full, settings) {
     // Include the card's own background/padding and the gap between panels.
     el.set({ bg: "#000000", border: 0, radius: 0 });
-    const settings = settingsFor(card);
     remember(settings);
     const ids = cameras(settings);
     const focus = selected && selected.key === settingsKey(settings) && selected.index < ids.length
@@ -147,7 +149,7 @@ function follow() {
     retoon.watch([], cameraChanged);
     retoon.update();
 }
-retoon.tile((el, card) => draw(el, false, card));
-retoon.screen((el, card) => draw(el, true, card));
+retoon.tile((el, card) => draw(el, false, card.settings));
+retoon.screen((el, card) => draw(el, true, card.settings));
 retoon.onSettings(follow);
 follow();

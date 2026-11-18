@@ -1,65 +1,60 @@
-# SnapshotCamera
+﻿# SnapshotCamera
 
-Een of twee Home Assistant-camera's op je Toon, met eigen weergavenamen en automatisch verversen. Tik op een camera om uitsluitend dat beeld in het detailscherm te bekijken. De ruimte rond de beelden is zwart.
-
-Versie 1.2.0 vereist **ReToon 1.50 of hoger (app-API 10)**. Iedere kaart kan eigen instellingen krijgen. De overzichtskaart toont altijd snapshots; alleen de aangeklikte camera kan in details optioneel MJPEG tonen. De achtergrond blijft zwart. Lokale regressietests en de technische API-10-apparaattest op Toon 2 met ReToon 1.53 slagen. De gebruiker heeft de instellingen per kaart en werking op het apparaat getest en bevestigd. Toon 1 is niet getest.
+Een of twee camera's via de Home Assistant-systeemkoppeling. De kaart toont snapshots; tik op een camera voor alleen dat beeld in details, met optioneel MJPEG. De ruimte rond de beelden is zwart. Vereist ReToon 1.50 of hoger / app-API 10. Toon 1 is niet getest.
 
 ## Instellen
 
-Installeer de app en voeg een kaart van type **App** toe aan een pagina. Kies **SnapshotCamera**. Een brede, hoge kaart geeft twee beelden de meeste ruimte.
+Kies onder **Apps → SnapshotCamera** de standaardcamera's en namen, één/twee beelden, het snapshotinterval en de standaard voor detailvideo. Het interval (2–300 seconden, standaard 5) en de maximale MJPEG-snelheid (1–10 fps, standaard 5) zijn gedeeld voor alle kaarten.
 
-Onder **Apps → SnapshotCamera** stel je de gedeelde uitgangswaarden in. Bestaande kaarten blijven die gebruiken, ook na een update.
+Voeg op een pagina een **App**-kaart toe en kies SnapshotCamera. De kaarteditor heeft slechts twee instellingen:
 
-Voor een onafhankelijke kaart: open **Pagina's → kaart bewerken** en schakel **Eigen instellingen voor deze kaart** in. Stel daarna de camera's en overige velden van die kaart in. Uit gebruikt uitsluitend de gedeelde Apps-instellingen; aan gebruikt de velden van deze kaart, inclusief bewust lege namen of uitgeschakelde opties.
-
-De huidige ReToon-kaarteditor toont bij ontbrekende kaartwaarden de manifeststandaarden. Hij vult de velden niet automatisch met de waarden onder Apps. Daarom is de expliciete schakelaar nodig: het opslaan van een oude kaart met lege editorvelden mag je bestaande camera's niet wissen. Bij inschakelen van eigen instellingen kies je de camera's dus opnieuw voor die kaart.
-
-Dezelfde opties zijn beschikbaar als appstandaard en per kaart:
-
-| Instelling | Betekenis |
+| Instelling | Gedrag |
 | --- | --- |
-| Camera 1 / Camera 2 | Selecteer een camera-entiteit uit de bestaande Home Assistant-koppeling. |
-| Naam camera 1 / Naam camera 2 | Optionele eigen naam. Leeg gebruikt de vriendelijke naam uit Home Assistant. |
-| Twee camera's tonen | Aan toont twee beelden naast elkaar; uit toont alleen camera 1. |
-| Snapshots verversen | Seconden tussen snapshots terwijl het beeld zichtbaar is; standaard 5, begrensd op 2–300. Geldt altijd voor de overzichtskaart en ook voor het detailscherm als MJPEG uit staat. |
-| Bewegend beeld alleen in detailscherm | Schakel in voor MJPEG in het detailscherm. De overzichtskaart blijft snapshots tonen. De camera moet MJPEG via Home Assistant ondersteunen. |
-| Beelden per seconde | Bovengrens bij MJPEG, standaard 5, begrensd op 1–10. De werkelijke snelheid hangt af van camera, netwerk en Toon. |
+| Camera's van deze kaart | Lege lijst gebruikt de standaardcamera's en namen onder Apps. Voeg één of twee camera's toe voor een onafhankelijke kaart. Elke rij heeft een optionele naam; leeg gebruikt de vriendelijke HA-naam van die eigen camera. |
+| Beeld in detailscherm | Kies **Instelling onder Apps volgen**, **Snapshots** of **Bewegend beeld (MJPEG)**. Zo kan één kaart video expliciet uitschakelen terwijl de gedeelde instelling aan staat, of andersom. |
 
-Alle publieke persoonlijke standaardwaarden zijn leeg. Kaartconfiguraties staan in dashboarddata: plaats daar nooit wachtwoorden, tokens of andere geheimen. De tweede camera wordt alleen gebruikt als twee beelden ingeschakeld zijn. Sluit het detailscherm met de standaardknop van ReToon.
+Het aantal eigen rijen bepaalt het aantal beelden: één rij geeft één camera, twee rijen geven twee camera's. Er is geen aparte hoofdschakelaar voor kaartinstellingen. Bij een lege lijst erft de kaart de volledige standaardselectie inclusief de bestaande namen. Snapshots op de overzichtskaart blijven actief ongeacht de detailmodus. Sluit details met de standaardknop van ReToon.
 
-### Geen apart Home Assistant-adres meer
+Geen apart HA-adres of token nodig: ReToon regelt de serververbinding en authenticatie. Alle persoonlijke publieke defaults zijn leeg. Kaartconfiguraties staan in dashboarddata; zet er geen geheimen in.
 
-Vanaf API 8 kan ReToon rechtstreeks een camera-entiteit weergeven via de bestaande systeemkoppeling. Home Assistant-adres en authenticatie worden door ReToon geregeld. De app vraagt daarom geen apart HA-adres of token meer en leest geen tijdelijke beeld-URL's uit.
+## Wijzigingen naar aanleiding van de review
 
-Versie 1.0.0 moest een relatief entity_picture-pad combineren met een apart ingesteld HA-adres. Die workaround is verwijderd. De camera's, namen en het snapshotinterval behouden dezelfde instellingssleutels bij een update; een eventueel achtergebleven haUrl-veld wordt volledig genegeerd. Nieuwe instellingen kiezen snapshots, zodat een update niet vanzelf streams start.
+1. **Native kaartinstellingen:** tile en screen lezen rechtstreeks het door ReToon geleverde card.settings. De eigen schakelaar useCardSettings en settingsFor zijn verwijderd.
+2. **Geen botsende defaults:** settings bevat de gedeelde velden; cardSettings gebruikt uitsluitend cardCameras (default []) en cardDetailMode (default ""). De schema's hebben geen gedeelde sleutels. Leeg betekent overnemen van de standaard, niet leegmaken van de globale camerakeuze. Dit volgt het lijstpatroon van Sonos/cardPlayers.
+3. **Gedeelde snelheid:** interval en fps staan uitsluitend onder Apps. Kaarten hebben eigen camera's/namen/detailmodus, niet elk een aparte beeldsnelheid.
+4. **Meerdere kaarten:** klikselectie gebruikt de effectieve cameralijst en detailmodus. De watch-lijst blijft de ontdubbelde unie van de waargenomen camera's. Tekenen van een andere kaart verandert de geselecteerde detailcamera niet.
+
+## Upgrade en eerdere testkaarten
+
+Gebruikers van de officiële 1.1.2-release behouden hun bestaande appinstellingen. Zij hebben nog geen oude kaartvelden uit deze PR en hoeven niets te migreren.
+
+Wie de eerdere 1.2.0-testversie uit deze PR gebruikte, moet de opgeslagen kaartinstellingen omzetten voordat de nieuwe versie wordt gebruikt. De oude velden kunnen anders appwaarden blijven overschrijven, ook als het formulier ze niet meer toont. Maak eerst een backup en wijzig uitsluitend SnapshotCamera-kaarten:
+
+- Met oude useCardSettings uit: verwijder useCardSettings en de oude kaartvelden camera1, camera2, name1, name2, twoCameras, every, stream en fps. De kaart volgt weer de gedeelde waarden.
+- Met oude useCardSettings aan: zet de daadwerkelijk gekozen camera's en namen om naar cardCameras, en zet stream om naar cardDetailMode (mjpeg of snapshot). Verwijder daarna de negen oude velden. Behoud alle andere kaartgegevens en posities.
+- Afwijkende kaartintervallen/fps worden voortaan vervangen door de gedeelde Apps-waarden. Vergelijk ze vóór omzetting; overschrijf de globale waarden niet stilzwijgend. Een bewust lege oude camerakeuze vereist handmatige beoordeling, omdat een lege nieuwe lijst juist overerving betekent.
+
+De app kan zelf geen dashboardbestanden schrijven en voert geen verborgen migratie uit. De eerdere hoofdschakelaar blijft niet als compatibiliteitslaag in de runtime aanwezig.
 
 ## Ontwikkelaars
 
-Het manifest gebruikt API 10 en declareert `cardSettings`, met dezelfde acht velden als de gedeelde `settings` plus `useCardSettings` (standaard false). Die standaard behoudt bestaande configuraties zonder dashboardmigratie. `retoon.tile((el, card) => ...)` en `retoon.screen((el, card) => ...)` krijgen de kaart; de runtime levert de effectieve kaartwaarden via `card.settings`. Met de eigen schakelaar aan worden uitsluitend de bekende velden van dat object gelezen, anders uitsluitend de gedeelde `retoon.settings`. Ontbrekend, leeg, false en nul worden niet met elkaar verward.
+Eén QuickJS-bestand, main.js, plus manifest.json, README.md en LICENSE. De callbacks krijgen het native samengevoegde card.settings en geven dit expliciet door. Een pure camerafunctie kiest de eigen lijst of de gedeelde camera1/name1 en eventueel camera2/name2 uit datzelfde object; er wordt geen tweede configuratiebron beheerd.
 
-De klikselectie bevat de effectieve configuratie en camera-index. Een redraw van een andere kaart overschrijft die selectie niet. Het detailscherm leest zijn eigen meegegeven kaart; er wordt geen ongedocumenteerde stabiele kaart-ID verondersteld.
+Het manifest declareert cameras: ["camera.*"] voor de configureerbare selectie. De app volgt en tekent alleen de gekozen camera's. Snapshots gebruiken el.image met camera en every; details gebruiken optioneel stream en fps. Geen extra HA-services, URL-constructie, eigen fetch- of tekentimers, tokens of beeld-URL-attributen.
 
-Metadata-contexten worden per effectieve configuratie onthouden. Een uitgestelde, samengevoegde `retoon.watch` volgt de unie van de gebruikte camera's, zodat kaart B kaart A niet uitschrijft. Identieke configuraties en camera's worden ontdubbeld. Alleen zichtbare naam/beschikbaarheid veroorzaken een redraw. Contexten worden gewist bij appinstellingswijzigingen of herstart van de app. Omdat de API geen verwijdercallback voor een kaart geeft, kan metadata van een eerder getekende configuratie tot die reset gevolgd blijven; dit start geen beelden of streams voor verwijderde kaarten. ReToon beheert de levensduur van zichtbare afbeeldingen zelf.
+Watch-registratie wordt na tekenen samengevoegd; één kaart schrijft de andere niet uit. Alleen effectieve namen en beschikbaarheid veroorzaken een redraw. Omdat de API geen kaart-verwijdercallback heeft, kunnen metadata-contexten tot appinstellingswijziging of appherstart gevolgd blijven. Dit start geen beelden voor verwijderde kaarten: ReToon beheert alleen zichtbare afbeeldingen en streams.
 
-De app bestaat uit manifest.json en één QuickJS-script, main.js. Er zijn geen browser- of Node-API's in de runtimecode.
+## Beeldformaten en problemen
 
-Het manifest vereist API 8 en declareert `cameras: ["camera.*"]`, omdat de gebruiker willekeurige camera-entiteiten kan selecteren. ReToon toont deze cameratoestemming in de webinterface. De app tekent en volgt uitsluitend de één of twee geselecteerde, geldige camera-entiteiten. Er worden geen HA-services gedeclareerd of aangeroepen.
+ReToon documenteert baseline/progressive JPEG en PNG, en MJPEG voor bewegend beeld. GIF is niet onderdeel van deze afbeeldingsinterface. Sommige radarcamera's, waaronder de Home Assistant-Buienradar-integratie, leveren een geanimeerde GIF. Een HTTP-header image/jpeg garandeert niet dat de bytes werkelijk JPEG zijn. Zo'n GIF kan daarom leeg blijven, ook als de camera beschikbaar is en HTTP 200 antwoordt.
 
-Snapshots gebruiken `el.image({ camera: id, every, ... })`. MJPEG gebruikt `el.image({ camera: id, stream: true, fps, ... })`. Er wordt geen url, header of toegangstoken door de app samengesteld of doorgegeven. ReToon beheert de gedeelde Home Assistant-verbinding, authenticatie en het laden/cachen/verversen van beelden. Volgens de API draait een stream uitsluitend terwijl het beeld zichtbaar is.
+Voor een GIF-bron is vooraf omzetten naar JPEG/PNG nodig, of GIF-ondersteuning in ReToon zelf. Alleen de extensie of Content-Type aanpassen converteert geen beeld. De app implementeert geen eigen GIF-decoder of stille conversie. Een geanimeerde GIF is evenmin automatisch een MJPEG-stream.
 
-`retoon.watch` volgt namen en beschikbaarheid, inclusief attribuutwijzigingen. De app vergelijkt uitsluitend de daadwerkelijk getoonde namen en beschikbaarheid voordat zij `retoon.update()` aanroept. Ongewijzigde metadata, een HA-naam achter een eigen weergavenaam en statuswissels tussen beschikbare toestanden veroorzaken geen volledige hertekening. Beeldframes en authenticatie worden onafhankelijk door ReToon bijgewerkt. Een nog niet geladen entiteitsstatus verhindert het native beeldverzoek niet: de imagefunctie kan de systeemverbinding gebruiken terwijl metadata nog binnenkomt. Een expliciet onbeschikbare camera krijgt een melding.
+WebRTC-only camera's worden via deze API niet ondersteund. Er is geen rechtstreekse RTSP-/ONVIF-client. Snapshots worden maximaal 640 pixels breed aangevraagd; streams maximaal 640 × 360. De fps is een bovengrens, geen garantie. Verlaag fps of kies snapshots bij haperingen.
 
-De kaartklik registreert eerst de effectieve kaartconfiguratie en gekozen camera en laat vervolgens ReToons standaard kaartactie het detailscherm openen. Dat scherm tekent alleen de gekozen camera. JavaScript start geen fetch- of serviceverzoeken vanuit tekenfuncties. De ingebouwde imagefunctie verzorgt de netwerkverzoeken; er is geen extra tekentimer.
+Bij een leeg beeld: controleer HA-systeemkoppeling, camerakeuze en het echte beeldformaat. De image-API geeft geen betrouwbare laad-/foutcallback aan de app; er is daarom geen automatische stream-terugval of bevestiging van decodering op het scherm.
 
-## Grenzen en probleemoplossing
-
-ReToon 1.39 ondersteunt ook progressive JPEG, naast baseline JPEG en PNG. MJPEG moet via Home Assistant beschikbaar zijn; uitsluitend WebRTC-camera's worden volgens de API niet ondersteund. Deze app implementeert geen rechtstreekse RTSP- of ONVIF-client.
-
-Afbeeldingen behouden hun verhouding. Snapshots worden maximaal 640 pixels breed aangevraagd, streams maximaal 640 × 360. Er wordt uitsluitend voor de geselecteerde camera in het detailscherm MJPEG aangevraagd. Verlaag bij haperingen de fps-instelling of kies snapshots. De overzichtskaart start nooit streams. De fps-instelling is een bovengrens, geen gegarandeerde verversingssnelheid. De zwarte achtergrond verwijdert geen randen die in het bronbeeld zelf zitten.
-
-Bij een leeg beeld: controleer de systeemkoppeling met Home Assistant, de gekozen camera, de cameratoestemming en het beeldformaat. Schakel bij een niet-werkende stream terug naar snapshots. Er is geen automatische terugval: de image-API biedt de app geen foutcallback om dit betrouwbaar te bepalen. De app kan evenmin bevestigen dat een beeld op het scherm is gedecodeerd; een apparaattest blijft nodig.
-
-De app maakt zelf geen beeldopnamen of logbestanden. ReToon en Home Assistant voeren hun eigen netwerk-, cache- en foutafhandeling uit. Deel geen apparaatlogs, screenshots met camerabeelden, beeld-URL's of persoonlijke instellingen bij publicatie.
+De app maakt zelf geen opnamen of logbestanden. ReToon en Home Assistant houden hun eigen netwerk-/cache-/foutafhandeling. Deel geen camerabeelden, getekende URL's, apparaatlogs of persoonlijke instellingen bij publicatie.
 
 ## Licentie
 
