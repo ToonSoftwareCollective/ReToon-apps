@@ -12,6 +12,7 @@ and optionally a full screen that opens when the card is tapped.
 | [spotenergy](spotenergy) | Dynamic electricity prices for the Netherlands, with taxes, as a card and a full-screen graph |
 | [powerflow](powerflow) | Where the power in your home comes from and goes to, with moving dots |
 | [sonos](sonos) | Control Sonos speakers through Home Assistant: the playing group, volume, play/pause, building groups and choosing content ([setup](docs/sonos-app.md)) |
+| [agenda](agenda) | Upcoming events from one or more Home Assistant calendars (iCloud, Google, CalDAV…), with own calendars and title per card ([setup](docs/agenda-app.md)) |
 
 ## Installing an app
 
