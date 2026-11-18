@@ -1,10 +1,10 @@
 {
 	"id": "agenda",
 	"name": "Agenda",
-	"version": "1.0.0",
-	"api": 7,
+	"version": "1.1.0",
+	"api": 10,
 	"main": "main.js",
-	"description": "Shows upcoming events from one or more Home Assistant calendars (Google, iCloud, CalDAV, local, ...). The card shows the next events; tap it for the coming days. Pick the calendars below and optionally give each a colour.",
+	"description": "Shows upcoming events from one or more Home Assistant calendars (Google, iCloud, CalDAV, local, ...). The card shows the next events; tap it for the coming days. Pick the calendars below and optionally give each a colour. Each card can show its own calendars and title, for example one card per family member.",
 	"author": "Anton Timmers",
 	"tile": {
 		"height": 150
@@ -50,6 +50,34 @@
 			"label": "Refresh every (minutes)",
 			"type": "number",
 			"default": 15
+		}
+	],
+	"cardSettings": [
+		{
+			"key": "cardTitle",
+			"label": "Title on this card (empty: the title under Apps)",
+			"type": "text",
+			"default": ""
+		},
+		{
+			"key": "cardCalendars",
+			"label": "Calendars on this card (empty: the calendars under Apps)",
+			"type": "entities",
+			"max": 6,
+			"addLabel": "Add a calendar",
+			"fields": [
+				{
+					"key": "name",
+					"label": "Name (empty: the name in Home Assistant)",
+					"type": "text"
+				},
+				{
+					"key": "color",
+					"label": "Colour: green, blue, orange, red, purple, yellow, teal, pink or #rrggbb",
+					"type": "text"
+				}
+			],
+			"default": []
 		}
 	]
 }
