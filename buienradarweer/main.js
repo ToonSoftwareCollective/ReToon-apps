@@ -20,10 +20,17 @@ const CONDITIONS = {
 function entity() {
     return String(retoon.settings.entity || "").trim();
 }
+function cardSettings(card) {
+    return Object.assign({}, retoon.settings, card && card.settings || {});
+}
+function applyStyle(el, settings) {
+    if (settings.background) el.set({ bg: settings.background });
+}
 // Only forecasts are cached; current conditions are read live on every draw.
 let forecast = [];
 let forecastUnit = "";
 let forecastMessage = "Kies een weerentiteit bij Apps";
+let followedEntity = null;
 let forecastGeneration = 0;
 let forecastInFlight = -1;
 let forecastTimer = null;
@@ -96,16 +103,17 @@ function bearing(v) {
     if (n === null) return typeof v === "string" ? short(v, 12) : "–";
     return ["N", "NNO", "NO", "ONO", "O", "OZO", "ZO", "ZZO", "Z", "ZZW", "ZW", "WZW", "W", "WNW", "NW", "NNW"][Math.round(((n % 360 + 360) % 360) / 22.5) % 16];
 }
-function model() {
+function model(settings) {
     const id = entity();
     const st = id ? retoon.state(id) : null;
     const available = !!st && !!st.state && st.state !== "unavailable" && st.state !== "unknown";
     const a = available ? (st.attributes || {}) : {};
     const condition = available ? (CONDITIONS[st.state] || ["Onbekende weerconditie", "weather-cloudy"]) : [!id ? "Kies een weerentiteit bij Apps" : st ? "Weer niet beschikbaar" : "Wachten op Home Assistant", "cloud-question"];
     return { id: id, available: available, a: a, condition: condition, state: available ? st.state : "unknown",
-        title: short(retoon.settings.title || (st && st.name) || "Weer", 30),
+        title: short(String(settings.cardTitle || "").trim() || settings.title || (st && st.name) || "Weer", 30),
+        customIconColor: settings.iconColor || "",
         temp: measure(a.temperature, a.temperature_unit, 1),
-        iconColor: !available ? "muted" : ({ sunny: "#f6c453", "clear-night": "#b8b7f0", partlycloudy: "#e4c779", cloudy: "#aebed0", fog: "#aebed0", rainy: "#65b6ef", pouring: "#65b6ef", snowy: "#a9deed", "snowy-rainy": "#a9deed", hail: "#a9deed", lightning: "#e4b268", "lightning-rainy": "#e4b268", exceptional: "#ed956f" }[st.state] || "accent"),
+        iconColor: !available ? "muted" : settings.iconColor || ({ sunny: "#f6c453", "clear-night": "#b8b7f0", partlycloudy: "#e4c779", cloudy: "#aebed0", fog: "#aebed0", rainy: "#65b6ef", pouring: "#65b6ef", snowy: "#a9deed", "snowy-rainy": "#a9deed", hail: "#a9deed", lightning: "#e4b268", "lightning-rainy": "#e4b268", exceptional: "#ed956f" }[st.state] || "accent"),
         feels: measure(a.apparent_temperature, a.temperature_unit, 1),
         wind: measure(a.wind_speed, a.wind_speed_unit, 1) };
 }
@@ -135,10 +143,10 @@ function weatherIcon(el, m, x, y, size) {
         el.box({ x: x + 28 * k, y: y + 55 * k, w: 43 * k, h: 24 * k, bg: m.iconColor, radius: 4 * k });
     };
     const sun = (cx, cy, r) => {
-        circle(cx, cy, r, "#f6c453");
+        circle(cx, cy, r, m.customIconColor || "#f6c453");
         for (let i = 0; i < 8; i++) {
             const a = i * Math.PI / 4;
-            line([cx + Math.cos(a) * (r + 6), cy + Math.sin(a) * (r + 6), cx + Math.cos(a) * (r + 13), cy + Math.sin(a) * (r + 13)], "#f6c453", 4);
+            line([cx + Math.cos(a) * (r + 6), cy + Math.sin(a) * (r + 6), cx + Math.cos(a) * (r + 13), cy + Math.sin(a) * (r + 13)], m.customIconColor || "#f6c453", 4);
         }
     };
     if (!m.available || m.state === "exceptional") {
@@ -158,40 +166,56 @@ function weatherIcon(el, m, x, y, size) {
     } else {
         if (m.state === "partlycloudy") sun(68, 28, 16);
         cloud();
-        if (m.state.includes("lightning")) line([54, 64, 42, 82, 56, 82, 46, 98], "#f6c453", 5);
+        if (m.state.includes("lightning")) line([54, 64, 42, 82, 56, 82, 46, 98], m.customIconColor || "#f6c453", 5);
         else if (["rainy", "pouring", "snowy-rainy"].indexOf(m.state) >= 0) {
-            [30, 51, 72].forEach(cx => line([cx, 85, cx - 5, 96], "#65b6ef", 4));
+            [30, 51, 72].forEach(cx => line([cx, 85, cx - 5, 96], m.customIconColor || "#65b6ef", 4));
         } else if (m.state === "snowy" || m.state === "hail") {
-            [30, 51, 72].forEach(cx => circle(cx, 91, 3, "#a9deed"));
+            [30, 51, 72].forEach(cx => circle(cx, 91, 3, m.customIconColor || "#a9deed"));
         } else if (m.state === "fog") {
             line([15, 86, 83, 86], m.iconColor, 3);
             line([25, 95, 73, 95], m.iconColor, 3);
         }
     }
 }
-function tile(el) {
-    const m = model();
-    const compact = el.height < 196;
-    const narrow = el.width < 300;
-    text(el, short(m.title, narrow ? 15 : 30), 0, 0, "head", "text", el.width - (el.width < 210 ? 76 : 104));
-    const iconSize = el.height < 100 || el.width < 210 ? 72 : 96;
-    weatherIcon(el, m, el.width - iconSize, 0, iconSize);
-    if (el.height < 85) {
-        temperature(el, m, 0, 30, false);
+function tile(el, card) {
+    const settings = cardSettings(card);
+    applyStyle(el, settings);
+    const m = model(settings);
+    // Short cards need one line, without a large icon or a wrapped digit.
+    if (el.height < 76) {
+        temperature(el, m, 0, 0, false);
+        el.icon("mdi:" + m.condition[1], { x: Math.max(0, el.width - 48), y: 0,
+            size: el.height >= 48 ? "big" : "mid", color: m.iconColor });
+        if (el.height >= 60) text(el, m.title, 0, 40, "small", "muted", Math.max(1, el.width - 56));
         return;
     }
+    const compact = el.height < 196 || settings.layout === "compact";
+    const narrow = el.width < 300;
+    const iconSize = el.height < 100 || el.width < 210 ? 72 : 96;
+    const titleWidth = Math.max(1, el.width - iconSize - 8);
+    text(el, short(m.title, Math.max(3, Math.min(30, Math.floor(titleWidth / 12)))), 0, 0, "head", "text", titleWidth);
+    weatherIcon(el, m, el.width - iconSize, 0, iconSize);
     temperature(el, m, 0, 33, !compact && !narrow);
-    text(el, short(m.condition[0], narrow ? 22 : 36), 0, compact || narrow ? 77 : 119, "body", "muted", el.width);
-    if (el.height >= 185) {
+    if (el.height >= 105) text(el, short(m.condition[0], narrow ? 22 : 36), 0, compact || narrow ? 77 : 119, "body", "muted", el.width);
+    const showPressure = settings.showPressure !== false;
+    const showWind = settings.showWind !== false;
+    const showFeels = settings.showFeels !== false && !narrow;
+    if (el.height >= 185 && (showPressure || showWind || showFeels)) {
         const divider = compact || narrow ? 130 : 145;
         el.line([0, divider, el.width, divider], { color: "muted", opacity: 0.25, width: 1 });
-        text(el, "Luchtdruk  " + measure(m.a.pressure, m.a.pressure_unit, 1), 0, divider + 9, "small", "muted");
-        text(el, short("Wind  " + m.wind, narrow ? 24 : 35), 0, divider + 35, "small", "muted");
-        if (!narrow) text(el, "Voelt als  " + m.feels, Math.floor(el.width / 2), divider + 35, "small", "muted");
+        let row = divider + 9;
+        if (showPressure) {
+            text(el, "Luchtdruk  " + measure(m.a.pressure, m.a.pressure_unit, 1), 0, row, "small", "muted");
+            row += 26;
+        }
+        if (showWind) text(el, short("Wind  " + m.wind, narrow ? 24 : 35), 0, row, "small", "muted");
+        if (showFeels) text(el, "Voelt als  " + m.feels, showWind ? Math.floor(el.width / 2) : 0, row, "small", "muted");
     }
 }
-function screen(el) {
-    const m = model(), a = m.a;
+function screen(el, card) {
+    const settings = cardSettings(card);
+    applyStyle(el, settings);
+    const m = model(settings), a = m.a;
     const pad = 24, right = el.width - pad;
     text(el, m.title, pad, 4, "head");
     weatherIcon(el, m, pad, 39, 112);
@@ -225,7 +249,7 @@ function screen(el) {
         const date = new Date(day.date + "T12:00:00");
         text(el, day.date === dateKey(new Date()) ? "Vandaag" : ["Zo", "Ma", "Di", "Wo", "Do", "Vr", "Za"][date.getDay()], x + 12, 378, "small", "muted");
         const condition = CONDITIONS[day.condition];
-        el.icon("mdi:" + (condition ? condition[1] : "cloud-question"), { x: x + 12, y: 400, size: "big", color: condition ? (day.condition === "sunny" ? "#f6c453" : day.condition.includes("rain") ? "#65b6ef" : "#aebed0") : "muted" });
+        el.icon("mdi:" + (condition ? condition[1] : "cloud-question"), { x: x + 12, y: 400, size: "big", color: settings.iconColor || (condition ? (day.condition === "sunny" ? "#f6c453" : day.condition.includes("rain") ? "#65b6ef" : "#aebed0") : "muted") });
         text(el, measure(day.high, unit, 0), x + 12, 450, "head");
         text(el, "Min  " + measure(day.low, unit, 0), x + 12, 478, "small", "muted");
         text(el, "Regen  " + measure(day.rain, "%", 0), x + 12, 500, "small", "muted");
@@ -233,6 +257,9 @@ function screen(el) {
 }
 function follow() {
     const id = entity();
+    // Presentation changes never invalidate the shared forecast or restart a request.
+    if (id === followedEntity) { retoon.update(); return; }
+    followedEntity = id;
     const generation = ++forecastGeneration;
     if (forecastTimer !== null) clearTimeout(forecastTimer);
     forecastTimer = null;

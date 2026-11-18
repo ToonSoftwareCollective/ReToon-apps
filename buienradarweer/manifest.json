@@ -1,10 +1,10 @@
 {
   "id": "buienradarweer",
   "name": "BuienradarWeer",
-  "version": "1.1.0",
-  "api": 7,
+  "version": "1.2.0",
+  "api": 10,
   "main": "main.js",
-  "description": "Actueel weer en vijfdaagse verwachting via een Home Assistant-weather-entiteit.",
+  "description": "Actueel weer en vijfdaagse verwachting uit Home Assistant, met uiterlijk en metingen per kaart. Vereist ReToon 1.50 of hoger.",
   "tile": {
     "height": 220
   },
@@ -17,7 +17,7 @@
     },
     {
       "key": "title",
-      "label": "Plaatsnaam",
+      "label": "Standaard plaatsnaam (voor alle kaarten)",
       "type": "text",
       "default": "Buienradar"
     }
@@ -25,5 +25,59 @@
   "author": "dEADkIRK",
   "services": [
     "weather.get_forecasts"
+  ],
+  "cardSettings": [
+    {
+      "key": "cardTitle",
+      "label": "Eigen plaatsnaam (leeg = standaard)",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "layout",
+      "label": "Weergave",
+      "type": "select",
+      "options": [
+        {
+          "value": "auto",
+          "label": "Automatisch"
+        },
+        {
+          "value": "compact",
+          "label": "Compact"
+        }
+      ],
+      "default": "auto"
+    },
+    {
+      "key": "iconColor",
+      "label": "Kleur weericonen (standaard = weerafhankelijk)",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "background",
+      "label": "Achtergrondkleur",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "showPressure",
+      "label": "Luchtdruk op kaart tonen",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "showWind",
+      "label": "Wind op kaart tonen",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "showFeels",
+      "label": "Gevoelstemperatuur op ruime kaarten tonen",
+      "type": "bool",
+      "default": true
+    }
   ]
 }
