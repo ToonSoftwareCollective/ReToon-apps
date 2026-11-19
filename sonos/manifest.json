@@ -1,10 +1,10 @@
 {
 	"id": "sonos",
 	"name": "Sonos",
-	"version": "1.0.0",
-	"api": 7,
+	"version": "1.1.0",
+	"api": 10,
 	"main": "main.js",
-	"description": "Control your Sonos speakers through Home Assistant. The card shows the active group of speakers (for example P5 + P1) with volume and play/pause; tap it to control volume and play/pause, pick a group, build a group by adding or removing speakers, and choose content. Pick the Sonos media players.",
+	"description": "Control your Sonos speakers through Home Assistant. The card shows the active group of speakers (for example P5 + P1) with volume and play/pause; tap it to control volume and play/pause, pick a group, build a group by adding or removing speakers, and choose content. Pick the Sonos media players under Apps; each card can have its own speakers (for example one card per room).",
 	"author": "Stefan Verstege (newmedia)",
 	"tile": { "height": 150 },
 	"services": ["media_player.volume_set", "media_player.media_play_pause", "media_player.join", "media_player.unjoin", "media_player.select_source"],
@@ -15,5 +15,12 @@
 		  ],
 		  "default": [] },
 		{ "key": "step", "label": "Volume step (%)", "type": "number", "default": 5 }
+	],
+	"cardSettings": [
+		{ "key": "cardPlayers", "label": "Speakers of this card (empty: the speakers under Apps)", "type": "entities", "max": 6, "addLabel": "Add a speaker",
+		  "fields": [
+			{ "key": "name", "label": "Name (empty: the name in Home Assistant)", "type": "text" }
+		  ],
+		  "default": [] }
 	]
 }
