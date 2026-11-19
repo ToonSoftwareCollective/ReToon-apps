@@ -13,6 +13,7 @@ and optionally a full screen that opens when the card is tapped.
 | [powerflow](powerflow) | Where the power in your home comes from and goes to, with moving dots |
 | [clock-studio](clock-studio) | Configurable analog, digital, world-map and calendar clock with independent settings per card ([setup](docs/clock-studio/README.md)) |
 | [sonos](sonos) | Control Sonos speakers through Home Assistant: the playing group, volume, play/pause, building groups and choosing content ([setup](docs/sonos-app.md)) |
+| [agenda](agenda) | Upcoming events from one or more Home Assistant calendars (iCloud, Google, CalDAV…), with own calendars and title per card ([setup](docs/agenda-app.md)) |
 
 ## Installing an app
 
