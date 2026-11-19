@@ -150,13 +150,19 @@ setTimeout, setInterval, clearTimeout, clearInterval
 
 Entity ids: any Home Assistant entity (`sensor.x`, `light.y`, ...), MQTT
 values as `mqtt.<name>`, and the Toon's own entities, which work without
-Home Assistant: `toon.temperature`, `toon.humidity`, `toon.illuminance`,
+Home Assistant: `toon.temperature`, `toon.internal_temperature`,
+`toon.outside_temperature`, `toon.humidity`, `toon.illuminance`,
 `toon.air_quality`, `toon.thermostat`, `toon.boiler_connection`,
 `toon.boiler_water`, `toon.return_water`, `toon.flow_setpoint`,
-`toon.hot_water_setpoint`, `toon.max_heating_setpoint`, `toon.modulation`,
-`toon.water_pressure`, `toon.fault_code`, `toon.boiler_fault`,
-`toon.boiler_message`, `toon.flame`, `toon.heat_request`, `toon.display`,
-`toon.wifi`. To act in Home Assistant, use `retoon.call` (level 7) with the
+`toon.hot_water_setpoint`, `toon.hot_water`, `toon.max_heating_setpoint`,
+`toon.modulation`, `toon.water_pressure`, `toon.fault_code`,
+`toon.boiler_fault`, `toon.boiler_message`, `toon.flame`,
+`toon.heating_active`, `toon.hot_water_active`, `toon.cooling_active`,
+`toon.heat_request`, `toon.cool_request`, `toon.display`, `toon.wifi`.
+The boiler's own flags (`toon.flame`, `toon.heating_active`,
+`toon.hot_water_active`, `toon.cooling_active`, `toon.boiler_fault`) come
+from OpenTherm: with an on/off boiler they are `unavailable`, and
+`toon.heat_request` is what the Toon asks for. To act in Home Assistant, use `retoon.call` (level 7) with the
 service in the manifest's `services`, and to show a camera `el.image({ camera })`
 (level 8) with it in `cameras`; never ask the user for a Home
 Assistant token. `retoon.state` of an entity
