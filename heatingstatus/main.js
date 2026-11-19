@@ -21,8 +21,9 @@ function status() {
   const heatingActive = readSwitch(heating);
   if (heatingActive === true) return statuses.heating;
   if (readSwitch(hotWater) === true) return statuses.hotWater;
-  if (readSwitch(heatRequest) === true) return statuses.heatRequest;
-  if (heatingActive === false) return statuses.idle;
+  const requested = readSwitch(heatRequest);
+  if (requested === true) return statuses.heatRequest;
+  if (heatingActive === false || requested === false) return statuses.idle;
   return statuses.unknown;
 }
 

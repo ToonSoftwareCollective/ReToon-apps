@@ -21,7 +21,7 @@ De tegel toont de eerste toepasselijke regel in deze tabel.
 | Verwarmt | `toon.heating_active` meldt actieve ruimteverwarming. |
 | Tapwater actief | `toon.hot_water_active` meldt actief warm tapwater. |
 | Warmtevraag | `toon.heat_request` meldt dat Toon warmte vraagt. |
-| Verwarming in rust | `toon.heating_active` meldt expliciet dat de ruimteverwarming inactief is. |
+| Verwarming in rust | `toon.heating_active` meldt inactieve ruimteverwarming, of `toon.heat_request` meldt expliciet dat er geen warmtevraag is. |
 | Status onbekend | De beschikbare waarden leveren geen van de bovenstaande statussen op. |
 
-De beschikbaarheid van ketelterugmelding hangt af van de aansluiting en de ketel. Bij ontbrekende terugmelding kan Toon nog steeds een warmtevraag melden. De app volgt uitsluitend lokale Toon-entiteiten en werkt zonder Home Assistant. Hij ververst bij statuswijzigingen.
+Bij een aan/uit-ketel kan terugmelding over ruimteverwarming en tapwater ontbreken. De tegel baseert **Warmtevraag** en **Verwarming in rust** dan op de vraag van Toon. Dat geeft aan of Toon om warmte vraagt. De app volgt uitsluitend lokale Toon-entiteiten en werkt zonder Home Assistant. Hij ververst bij statuswijzigingen.
