@@ -3,7 +3,7 @@ const RESOURCES={electricity:{name:'Stroom',icon:'flash',color:'#a68bfa'},gas:{n
 const ROOM_METERS={
  temperature:{name:'Temperatuur',icon:'thermometer',color:'#f6ab61',maximum:40},
  humidity:{name:'Luchtvochtigheid',icon:'water-percent',color:'#5baaff',maximum:100},
- voc:{name:'VOC',icon:'air-filter',color:'#a68bfa'},
+ voc:{name:'VOC',icon:'blur',color:'#a68bfa'},
  air:{name:'Luchtkwaliteit',icon:'weather-windy',color:'#67c4ac'},
  custom:{name:'Sensor',icon:'gauge',color:'#73b6ff'}
 };
@@ -20,9 +20,10 @@ function unitKey(u){return String(u||'').trim().toLowerCase().replace(/³/g,'3')
 function entityId(v){return typeof v==='string'&&/^[a-z_]+\.[a-z0-9_]+$/.test(v.trim())?v.trim():'';}
 function positive(v,fallback){return typeof v!=='boolean'&&v!==''&&v!==null&&v!==undefined&&Number.isFinite(Number(v))&&Number(v)>0?Number(v):fallback;}
 function color(v,fallback){return typeof v==='string'&&(/^#[0-9a-f]{6}$/i.test(v)||/^[a-z][a-z-]*$/.test(v))?v:fallback;}
+function meterIcon(v,fallback){const s=typeof v==='string'?v.trim().toLowerCase().replace(/^mdi:/,''):'';return 'mdi:'+(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s)?s:fallback);}
 function config(card){
- const raw={...(retoon.settings||{}),...(card&&card.settings||{})},kind=RESOURCES[raw.kind]?raw.kind:'electricity',mode=!ROOM_METERS[kind]&&['now','today','month','history'].includes(raw.mode)?raw.mode:'now';
- return {...raw,kind,mode,entity:entityId(raw.entity),style:['steps','fill','ring','icon'].includes(raw.style)?raw.style:'ring',unit:raw.unit&&raw.unit!=='auto'?String(raw.unit):'auto',bg:raw.black_background===true?'#000000':color(raw.background,'card'),accent:color(raw.accent,RESOURCES[kind].color),title:String(raw.title||'').trim().slice(0,50)||RESOURCES[kind].name+(ROOM_METERS[kind]?'':' '+({now:'nu',today:'vandaag',month:'deze maand',history:'in dagen'})[mode])};
+ const raw=card&&card.settings||{},kind=Object.prototype.hasOwnProperty.call(RESOURCES,raw.kind)?raw.kind:'electricity',mode=!ROOM_METERS[kind]&&['now','today','month','history'].includes(raw.mode)?raw.mode:'now';
+ return {...raw,kind,mode,icon:meterIcon(raw.icon,RESOURCES[kind].icon),entity:entityId(raw.entity),style:['steps','fill','ring','icon'].includes(raw.style)?raw.style:'ring',unit:raw.unit&&raw.unit!=='auto'?String(raw.unit):'auto',bg:raw.black_background===true?'#000000':color(raw.background,'card'),accent:color(raw.accent,RESOURCES[kind].color),title:String(raw.title||'').trim().slice(0,50)||RESOURCES[kind].name+(ROOM_METERS[kind]?'':' '+({now:'nu',today:'vandaag',month:'deze maand',history:'in dagen'})[mode])};
 }
 function targetHistoryUnit(c){return c.unit!=='auto'?c.unit:c.kind==='water'?'L':c.kind==='gas'?'m³':'kWh';}
 function historyKey(c){return c.entity+'|'+targetHistoryUnit(c);}
@@ -90,77 +91,46 @@ function maximum(c,r){
 }
 function label(el,s,x,y,w,font='body',fg='text',align='center'){el.text(s,{x,y,w,font,color:fg,textAlign:align});}
 function valueFont(text,w,preferred){const sizes={big:78,mid:34,head:22,body:19,small:16};for(const f of [preferred,'head','body','small'])if(text.length*sizes[f]*.58<=w-16)return f;return 'small';}
-function valueText(c,r){if(r.status)return r.status;return r.error&&r.error!=='Geen meetwaarde'&&c.entity?r.error:fmt(r.value,r.unit)+(r.unit?' '+r.unit:'');}
+function valueText(c,r){if(r.status)return r.status;const formatted=c.kind==='humidity'&&unitKey(r.unit)==='%'&&r.value!==null?String(Math.round(r.value)):fmt(r.value,r.unit);return r.error&&r.error!=='Geen meetwaarde'&&c.entity?r.error:formatted+(r.unit?' '+r.unit:'');}
 function baseWidth(w,h){return Math.max(20,Math.min(88,Math.round(Math.min(w,h)*.25)));}
-function arc(el,cx,cy,r,from,to,width,color){
- if(to<=from)return;
- const points=[],n=Math.max(2,Math.ceil((to-from)/4));
- for(let i=0;i<=n;i++){const a=(180+from+(to-from)*i/n)*Math.PI/180;points.push(cx+Math.cos(a)*r,cy+Math.sin(a)*r);}
- el.line(points,{width,color});
-}
 function point(cx, cy, r, fraction) {
   const a = Math.PI * (1 - fraction);
   return [cx + r * Math.cos(a), cy - r * Math.sin(a)];
 }
-// Draw the annulus as horizontal spans: exact colour boundaries, no round
-// line caps at internal joins. Only the two physical ends get a round cap.
-function band(el,cx,cy,r,width){
- const colors=[[67,160,71],[255,171,0],[224,68,54]];
- const half=width/2, outer=r+half, inner=r-half;
- const cuts=[.47,.79].map(f=>Math.tan(Math.PI*(1-f)));
- const cacheKey=[cx,cy,r,width].join('|');
- let spans=bandCache.get(cacheKey);
- if(!spans){
-  spans=[];
-  for(let y=Math.floor(cy-outer);y<Math.ceil(cy+half);y++){
-   const rows=[];
-   for(let sy=0;sy<4;sy++){
-    const dy=y+(sy+.5)/4-cy;
-    const row=[];
-    if(dy<0&&-dy<outer){
-     const end=Math.sqrt(outer*outer-dy*dy);
-     const start=-dy<inner?Math.sqrt(inner*inner-dy*dy):0;
-     const left=-dy/cuts[0],right=-dy/cuts[1];
-     for(const [lo,hi] of [[-end,-start],[start,end]]){
-      for(const [l,u,i] of [[lo,Math.min(hi,left),0],[Math.max(lo,left),Math.min(hi,right),1],[Math.max(lo,right),hi,2]]){
-       if(u>l)row.push([cx+l,cx+u,i]);
-      }
-     }
-    }else if(dy>=0&&dy<half){
-     const cap=Math.sqrt(half*half-dy*dy);
-     row.push([cx-r-cap,cx-r+cap,0],[cx+r-cap,cx+r+cap,2]);
-    }
-    rows.push(row);
-   }
-   const pixels=new Map();
-   for(const row of rows)for(const [left,right,i] of row){
-    for(let x=Math.floor(left);x<Math.ceil(right);x++){
-     const coverage=Math.min(right,x+1)-Math.max(left,x);
-     if(coverage<=0)continue;
-     const v=pixels.get(x)||[0,0,0,0];
-     v[3]+=coverage;
-     for(let channel=0;channel<3;channel++)v[channel]+=colors[i][channel]*coverage;
-     pixels.set(x,v);
-    }
-   }
-   let previous;
-   for(const [x,v] of [...pixels].sort((a,b)=>a[0]-b[0])){
-    const opacity=Math.round(v[3]*16)/64;
-    if(!opacity)continue;
-    const bg='#'+v.slice(0,3).map(n=>Math.round(n/v[3]).toString(16).padStart(2,'0')).join('');
-    if(previous&&previous.x+previous.w===x&&previous.bg===bg&&previous.opacity===opacity){previous.w++;continue;}
-    previous={x,y,w:1,h:1,bg,opacity,border:0,radius:0};
-    spans.push(previous);
-   }
-  }
-  if(bandCache.size>=8)bandCache.clear();
-  bandCache.set(cacheKey,spans);
- }
- for(const span of spans)el.box(span);
-}
+// Shared filled ring ribbon for all meters. Thin radial strokes eliminate the
+// polygonal outline of thick short-line segments. Round only exposed ends.
 const bandCache=new Map();
+function ribbon(el,cx,cy,r,width,start,end,color,roundStart=false,roundEnd=false){
+ if(end<=start)return;
+ const half=width/2, outer=r+half-.5, inner=r-half+.5;
+ const cacheKey=[cx,cy,r,width,start,end].join('|');
+ let paths=bandCache.get(cacheKey);
+ if(!paths){
+  paths=[];
+   const n=Math.max(1,Math.ceil(Math.PI*outer*(end-start)/.65));
+   let points=[];
+   for(let j=0;j<=n;j++){
+    const f=start+(end-start)*j/n,a=point(cx,cy,inner,f),b=point(cx,cy,outer,f);
+    points.push(...(j%2?b:a),...(j%2?a:b));
+    // Bound the size of each polyline, sharing a stroke at the split.
+    if(j===n||points.length>=384){
+     paths.push(points);
+     points=j===n?[]:points.slice(-4);
+    }
+   }
+  if(bandCache.size>=32)bandCache.delete(bandCache.keys().next().value);
+  bandCache.set(cacheKey,paths);
+ }
+ for(const points of paths)el.line(points,{width:1,color});
+ if(roundStart){const [x,y]=point(cx,cy,r,start);el.circle({x,y,r:half,bg:color,border:0});}
+ if(roundEnd){const [x,y]=point(cx,cy,r,end);el.circle({x,y,r:half,bg:color,border:0});}
+}
+function band(el,cx,cy,r,width){
+ const colors=['#43a047','#ffab00','#e04436'],cuts=[0,.47,.79,1];
+ for(let i=0;i<colors.length;i++)ribbon(el,cx,cy,r,width,cuts[i],cuts[i+1],colors[i],i===0,i===colors.length-1);
+}
 function ringView(el,c,r,w,h,full){
- const small=h<155,big=full&&w>=500&&h>=350,top=small?29:43,numberFont=big?'big':small?'head':'mid',numberH=big?90:small?28:42;
+ const small=h<155,big=full&&w>=500&&h>=350,top=small?29:43,numberFont=!full?'head':big?'big':small?'head':'mid',numberH=big?90:small?28:42;
  const radius=Math.max(10,Math.min((w-36)/2,h-top-numberH-12,full?190:145));
  const cx=w/2,cy=top+radius,width=Math.max(6,Math.min(12,Math.round(radius*.09)));
  const room=ROOM_METERS[c.kind],max=maximum(c,r),min=room?minimum(c):0;
@@ -180,12 +150,12 @@ function ringView(el,c,r,w,h,full){
   }
   el.circle({x:inner[0],y:inner[1],r:half,bg:'text',border:0});
  }else{
-  arc(el,cx,cy,radius,0,180,width,'#283241');
-  if(r.value!==null&&max!==null)arc(el,cx,cy,radius,0,180*fraction,width,c.accent);
+  ribbon(el,cx,cy,radius,width,0,1,'#283241',true,true);
+  if(r.value!==null&&max!==null)ribbon(el,cx,cy,radius,width,0,fraction,c.accent,true,true);
  }
  const text=valueText(c,r);
  if(radius>=30){
-  const font=valueFont(text,Math.min(w,1.35*radius),big?'mid':numberFont);
+  const font=valueFont(text,Math.min(w,(full?1.35:1.7)*radius),big?'mid':numberFont);
   const textHeight={mid:38,head:26,body:22,small:19}[font];
   label(el,text,6,cy-textHeight-2,w-12,font,r.value===null&&!r.status?'muted':'text');
  }else label(el,text,6,cy+7,w-12,valueFont(text,w,numberFont),r.value===null&&!r.status?'muted':'text');
@@ -194,20 +164,20 @@ function iconView(el,c,r,w,h,full){
  const compact=h<130;
  const size=compact&&h<108?'mid':'big';
  const iconHeight=size==='big'?48:32;
- const font=valueFont(valueText(c,r),w,!compact&&full?'big':compact?'head':'mid');
+ const font=valueFont(valueText(c,r),w,full&&!compact?'big':'head');
  const textHeight={big:90,mid:42,head:28,body:24,small:20}[font];
  const titleY=compact?4:10;
  const stackHeight=iconHeight+6+textHeight;
  const iconY=Math.max(compact?26:40,Math.floor((h+titleY+24-stackHeight)/2));
  label(el,c.title,8,titleY,w-16,compact?'small':'head','muted');
- el.icon('mdi:'+RESOURCES[c.kind].icon,{x:Math.round((w-iconHeight)/2),y:iconY,size,color:c.accent});
+ el.icon(c.icon,{x:Math.round((w-iconHeight)/2),y:iconY,size,color:c.accent});
  label(el,c.entity?valueText(c,r):'Kies een sensor',8,iconY+iconHeight+6,w-16,c.entity?font:'small',r.value===null&&!r.status?'muted':'text');
 }
 function valueView(el,c,r,w,h,full,originalH){
  if(c.style==='icon'&&h>=90&&w>=120){iconView(el,c,r,w,h,full);return;}
  const combined=valueText(c,r),fg=r.value===null&&!r.status?'muted':'text';
  if(h<95||w<150){label(el,c.title.slice(0,Math.max(6,Math.floor(w/9))),6,3,w-12,'small','muted');label(el,c.entity?combined:'Kies een sensor',6,Math.max(24,h/2),w-12,c.entity?valueFont(combined,w,'head'):'small',fg);return;}
- const big=full&&w>=500,short=h<155,numberFont=big?'big':short?'head':'mid',numberH=big?90:short?28:42,top=short?30:44,gap=big?14:short?6:8,footer=full&&h>=300?24:0;
+ const big=full&&w>=500,short=h<155,numberFont=!full?'head':big?'big':short?'head':'mid',numberH=big?90:short?28:42,top=short?30:44,gap=big?14:short?6:8,footer=full&&h>=300?24:0;
  label(el,c.title,8,short?4:8,w-16,short||w<200?'small':'head','muted');
  if(!c.entity){label(el,r.error,8,Math.max(38,h/2),w-16,'small','muted');return;}
  if(c.style==='ring'||ROOM_METERS[c.kind]){ringView(el,c,r,w,h,full);return;}
@@ -229,7 +199,7 @@ function historyView(el,c,full){
  const w=el.width,h=el.height,n=full&&w>=500?7:3,state=histories.get(historyKey(c)),unit=targetHistoryUnit(c);
  label(el,c.title,8,8,w-16,'head','muted');
  if(!c.entity){label(el,'Kies een verbruiksteller in de tegelinstellingen',8,h/2,w-16,'small','muted');return;}
- if(!state||!state.samples.some(s=>s.value!==null)){el.icon('mdi:'+RESOURCES[c.kind].icon,{align:'center',y:-24,size:'big',color:c.accent});label(el,state?state.error:'Gegevens laden…',8,Math.max(82,h*.63),w-16,'small','muted');return;}
+ if(!state||!state.samples.some(s=>s.value!==null)){el.icon(c.icon,{align:'center',y:-24,size:'big',color:c.accent});label(el,state?state.error:'Gegevens laden…',8,Math.max(82,h*.63),w-16,'small','muted');return;}
  if(h<160||w<200){label(el,'Vergroot de tegel voor daghistorie',8,h/2,w-16,'small','muted');return;}
  const items=Array.from({length:n},(_,i)=>{const date=midnight(-n+i),match=state.samples.find(row=>dayKey(row.date)===dayKey(date));return {date,value:match?match.value:null};});
  const known=items.map(i=>i.value).filter(v=>v!==null),max=positive(c.maximum,Math.max(1,...known)),top=58,bottom=h-(full?90:50),space=Math.max(15,bottom-top),col=(w-24)/n,bw=Math.min(baseWidth(w,h),col-10);

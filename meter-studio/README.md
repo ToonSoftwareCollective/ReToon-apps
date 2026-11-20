@@ -4,6 +4,30 @@ One configurable meter app for electricity, gas, solar production, water,
 temperature, humidity, VOC, air quality and other numerical sensors.
 Requires ReToon 1.50 or later (app API 10).
 
+## Changes in 1.3.7
+
+- Choose a custom MDI icon per card using the new icon text field, e.g.
+  `mdi:blur` or `blur`. Leave it blank to use the meter's default icon.
+- The default VOC icon is now `mdi:blur`.
+- Retains the typography, humidity rounding and semicircular gauges of 1.3.6.
+
+## Changes in 1.3.6
+
+- Consistent 22 px value typography across standard dashboard tiles, including
+  the semicircle, stepped indicator, bar and icon styles. Values that do not
+  fit automatically use a smaller size; full-screen views retain larger text.
+- Includes the smooth gauge rendering introduced in 1.3.5.
+- Humidity percentages are displayed as whole numbers. Other percentages
+  (including VOC) keep their existing precision.
+
+## Changes in 1.3.5
+
+- Uses the same smooth, filled ribbon geometry for every semicircular gauge,
+  including the single-colour temperature and indoor-climate gauges.
+- Rounded ends on the background track and the coloured progress segment.
+- Retains the optimised three-colour gauge from 1.3.4, the pointer, and all
+  existing per-card settings. No configuration migration is required.
+
 Add Meter Studio as an app card on a page. In the **card editor**, choose
 the meter type and a Home Assistant (or compatible Toon) entity. Each card
 has its own settings: period, style, title, range, unit, accent colour,
