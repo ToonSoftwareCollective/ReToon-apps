@@ -1,0 +1,211 @@
+{
+  "id": "meter-studio",
+  "name": "Meter Studio",
+  "version": "1.3.3",
+  "api": 10,
+  "main": "main.js",
+  "description": "Grote meterkaarten voor energie, water en binnenklimaat, met instellingen per tegel.",
+  "author": "Nomzi Design",
+  "tile": {
+    "height": 280
+  },
+  "services": [
+    "recorder.get_statistics"
+  ],
+  "cardSettings": [
+    {
+      "key": "kind",
+      "label": "Soort meter",
+      "type": "select",
+      "default": "electricity",
+      "options": [
+        {
+          "value": "electricity",
+          "label": "Stroom"
+        },
+        {
+          "value": "gas",
+          "label": "Gas"
+        },
+        {
+          "value": "solar",
+          "label": "Zonneproductie"
+        },
+        {
+          "value": "water",
+          "label": "Water"
+        },
+        {
+          "value": "temperature",
+          "label": "Temperatuur"
+        },
+        {
+          "value": "humidity",
+          "label": "Luchtvochtigheid"
+        },
+        {
+          "value": "voc",
+          "label": "VOC"
+        },
+        {
+          "value": "air",
+          "label": "Luchtkwaliteit"
+        },
+        {
+          "value": "custom",
+          "label": "Andere numerieke sensor"
+        }
+      ]
+    },
+    {
+      "key": "entity",
+      "label": "Sensor (bij Vandaag/Maand: dag-/maandteller)",
+      "type": "entity",
+      "default": ""
+    },
+    {
+      "key": "mode",
+      "label": "Periode (energie en water)",
+      "type": "select",
+      "default": "now",
+      "options": [
+        {
+          "value": "now",
+          "label": "Actueel"
+        },
+        {
+          "value": "today",
+          "label": "Vandaag"
+        },
+        {
+          "value": "month",
+          "label": "Deze maand"
+        },
+        {
+          "value": "history",
+          "label": "Afgelopen dagen (statistieken)"
+        }
+      ]
+    },
+    {
+      "key": "style",
+      "label": "Meterstijl (historie gebruikt dagkolommen)",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {
+          "value": "auto",
+          "label": "Automatisch: halve ring"
+        },
+        {
+          "value": "steps",
+          "label": "Streepjes groen → rood"
+        },
+        {
+          "value": "fill",
+          "label": "Balk met vulniveau"
+        },
+        {
+          "value": "ring",
+          "label": "Halve ring: actueel wijzer, dag/maand gevuld"
+        },
+        {
+          "value": "icon",
+          "label": "Groot MDI-icoon"
+        }
+      ]
+    },
+    {
+      "key": "title",
+      "label": "Eigen titel (optioneel)",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "minimum",
+      "label": "Ondergrens voor binnenklimaat / andere sensor",
+      "type": "number",
+      "default": 0
+    },
+    {
+      "key": "maximum",
+      "label": "Volle schaal (0 = standaard, indien beschikbaar)",
+      "type": "number",
+      "default": 0
+    },
+    {
+      "key": "unit",
+      "label": "Weergave-eenheid (binnenklimaat: automatisch)",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {
+          "value": "auto",
+          "label": "Automatisch uit sensor"
+        },
+        {
+          "value": "W",
+          "label": "W"
+        },
+        {
+          "value": "kW",
+          "label": "kW"
+        },
+        {
+          "value": "kWh",
+          "label": "kWh"
+        },
+        {
+          "value": "m³",
+          "label": "m³"
+        },
+        {
+          "value": "L",
+          "label": "L"
+        },
+        {
+          "value": "L/min",
+          "label": "L/min"
+        },
+        {
+          "value": "m³/h",
+          "label": "m³/h"
+        }
+      ]
+    },
+    {
+      "key": "accent",
+      "label": "Kleur vulniveau / historie (leeg = soortkleur)",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "black_background",
+      "type": "bool",
+      "label": "Zwarte achtergrond (ook voor gedimde startpagina)",
+      "default": false
+    },
+    {
+      "key": "background",
+      "label": "Achtergrond van de hele tegel",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "key": "detail_tiles",
+      "label": "Detailtegels na aantikken",
+      "type": "entities",
+      "default": [],
+      "max": 8,
+      "addLabel": "Detailtegel toevoegen",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Titel (optioneel)",
+          "type": "text",
+          "default": ""
+        }
+      ]
+    }
+  ]
+}
