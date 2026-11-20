@@ -4,7 +4,7 @@ One configurable clock app by Nomzi Design for normal and dimmed ReToon pages. E
 
 ## Installation
 
-Requires **ReToon 1.50 or newer (API 10)**. After the contribution is merged and published, install **Clock Studio** once under Apps → Available in the ReToon web interface. Add an App card to a page and select Clock Studio. Edit that card to choose its own face, theme, colours, seconds, date and other options.
+Requires **ReToon 1.50 or newer (API 10)**. Install **Clock Studio** once under Apps → Available in the ReToon web interface. Add an App card to a page and select Clock Studio. Edit that card to choose its own face, theme, colours, seconds, date and other options.
 
 For a dimmed home page, add another card using the very same Clock Studio app. For example, select the minimal analog face, white theme, black background (`#000000`) and corner radius 0. ReToon controls brightness and page switching; the clock app does not change either.
 
@@ -16,7 +16,7 @@ The separate `clock-studio-dim` app is no longer needed. Before removing it from
 
 **Shared under Apps:** optional Home Assistant calendar entity, look-ahead window (1–60 days) and whether appointment titles are shown. The clock works without Home Assistant; the optional integration only reads events via `calendar.get_events`.
 
-**Per card in the card editor:** face (`layout`), colour theme, individual colours, seconds, date, title, 12/24-hour time, scale, corner radius and optional advanced profile. Choose Standard for a colour to use the default/theme instead.
+**Per card in the card editor:** face (`layout`), colour theme, individual colours, seconds, date, title, 12/24-hour time, scale, corner radius, hand controls, map location and optional advanced profile. Choose Standard for a colour to use the default/theme instead.
 
 - Faces: `world`, `minimal`, `classic`, `square-small`, `square`, `digital`, `stacked`, `calendar`, and `auto`.
 - Themes: `blauw`, `paars`, `wit`, `rood`, and `groen`.
@@ -27,9 +27,17 @@ Small cards fall back to simpler faces; tapping opens a larger view with the sam
 
 ### Advanced customization
 
-Download [Instellen.html](Instellen.html) and open it locally for advanced hand styles, colours, scale and world-map location. Paste the generated JSON into **Uitgebreid profiel** in the specific card's editor. The profile overrides that card's visual settings; clear it or remove the corresponding keys to use the dropdowns and colour pickers again. Calendar preferences are shared under Apps, not in the profile.
+All hand and map settings are available directly in the card editor, including hand thickness, minute ticks, and the map's place name and coordinates. The default face is now a lighter minimal analog clock; the world map is still available as a choice. The map's example location is Amsterdam. No location lookup or external map request is made.
 
-The map's example location is Amsterdam. Change `place`, `latitude` and `longitude` in the advanced profile to set the marker and label. No location lookup or external map request is made.
+If you prefer a reusable JSON profile, [Instellen.html](Instellen.html) still works locally. Paste its output into **Optioneel JSON-profiel** in the card editor and explicitly enable **JSON-profiel gebruiken**. Only then do the keys in the profile override the native fields. Disable the checkbox to return to native settings. Existing 1.4.7 profiles remain saved but must be explicitly enabled after updating, or copied into the native fields. Calendar preferences remain under Apps.
+
+## Release 1.4.8
+
+- Added native per-card hand and world-map settings, and made JSON-profile overrides explicit and opt-in.
+- Changed the default face to `minimal` for faster page switches, especially on Toon 1.
+- Replaced rounded diagonal cap strokes with fine, symmetric chamfered LED shapes using one retained line per segment (28 for four digits, plus two colon dots). Only changed segments are recoloured.
+- Removed the unreachable API compatibility check; API 10 remains required and is the latest documented level.
+- Validation: repository manifest check and JavaScript syntax check pass; simulated 216 face/size/theme/seconds combinations, independent native and profile settings, full screen, retained minute updates, and horizontal/vertical segment geometry. Physical Toon 1/2 verification is still required.
 
 ## Release 1.4.7
 

@@ -1,7 +1,7 @@
 {
   "id": "clock-studio",
   "name": "Clock Studio",
-  "version": "1.4.7",
+  "version": "1.4.8",
   "api": 10,
   "main": "main.js",
   "description": "Instelbare analoge en digitale klokken, wereldkaart en agenda. Elke tegel heeft zijn eigen wijzerplaat, kleuren en instellingen.",
@@ -37,7 +37,7 @@
       "key": "layout",
       "label": "Wijzerplaat",
       "type": "select",
-      "default": "world",
+      "default": "minimal",
       "options": [
         {
           "value": "world",
@@ -178,8 +178,80 @@
       "default": 16
     },
     {
+      "key": "hour_hand",
+      "label": "Uurwijzer tonen",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "minute_hand",
+      "label": "Minuutwijzer tonen",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "hand_width",
+      "label": "Wijzerdikte (50–180%)",
+      "type": "number",
+      "default": 100
+    },
+    {
+      "key": "round_hands",
+      "label": "Afgeronde wijzeruiteinden",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "center_size",
+      "label": "Middenstip (2–12%)",
+      "type": "number",
+      "default": 5.7
+    },
+    {
+      "key": "minute_ticks",
+      "label": "Minuutstreepjes (uit = alleen uren)",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "numbers",
+      "label": "Cijfers op analoge wijzerplaat",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "dial_border",
+      "label": "Rand rond analoge wijzerplaat",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "place",
+      "label": "Wereldkaart: plaatsnaam",
+      "type": "text",
+      "default": "Amsterdam"
+    },
+    {
+      "key": "latitude",
+      "label": "Wereldkaart: breedtegraad",
+      "type": "number",
+      "default": 52.3676
+    },
+    {
+      "key": "longitude",
+      "label": "Wereldkaart: lengtegraad",
+      "type": "number",
+      "default": 4.9041
+    },
+    {
+      "key": "use_advanced_profile",
+      "label": "JSON-profiel gebruiken (overschrijft ingevulde tegelopties)",
+      "type": "bool",
+      "default": false
+    },
+    {
       "key": "advanced_profile",
-      "label": "Uitgebreid profiel voor deze tegel (optioneel; heeft voorrang)",
+      "label": "Optioneel JSON-profiel (alleen actief met vinkje hierboven)",
       "type": "text",
       "default": ""
     }
