@@ -211,7 +211,8 @@ el.image(opts)                       picture from a URL (level 6): JPEG (not pro
                                      a url), fps (1-10, default 5); a stream runs only while
                                      shown. Keep streams small (640 x 360): a Toon 1 manages
                                      about 4 frames a second. From 1.39 progressive
-                                     JPEGs work too
+                                     JPEGs work too; level 11 (ReToon 1.59) also decodes GIFs,
+                                     including animation, through the same image function
 el.onClick(fn)                       fn() when tapped
 el.set(opts)                         change in place: any option, a text's { text },
                                      a flow's { speed, color }, a time picker's { value }
@@ -261,6 +262,7 @@ cards are dark grey (`card`).
   colours may also be the dashboard's names (`red`, `teal`, `white`...).
 - 10 (ReToon 1.50): the manifest's `cardSettings`: settings per card, in
   `card.settings`; `retoon.screen`'s fn gets the tapped card too.
+- 11 (ReToon 1.59): `el.image` also decodes GIF pictures, including animation.
 
 ## The shape of an app
 
