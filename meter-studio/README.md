@@ -2,7 +2,15 @@
 
 One configurable meter app for electricity, gas, solar production, water,
 temperature, humidity, VOC, air quality and other numerical sensors.
-Requires ReToon 1.50 or later (app API 10).
+Requires ReToon 1.66 or later (app API 12).
+
+## Changes in 1.3.8
+
+- Semicircular gauges use native LVGL arcs through `el.arc` (API 12).
+  Each colour band is one arc. The existing layout, thickness, colours,
+  pointer and square colour transitions are preserved, with rounded outer ends.
+- Removes the generated ribbon paths and their cache.
+- Simplifies the default power scale calculation.
 
 ## Changes in 1.3.7
 
@@ -56,5 +64,13 @@ alarm or health threshold. Missing values are displayed as unavailable
 instead of zero.
 
 The optional history mode calls the read-only Home Assistant service
-`recorder.get_statistics` and needs a connection with sufficient permissions.
+`recorder.get_statistics`, available from **Home Assistant Core 2025.6**,
+and needs an administrator connection and a counter with long-term statistics.
+On older Home Assistant versions, history mode reports that history is
+unavailable.
+
+References: [2025.6 recorder services](https://github.com/home-assistant/core/blob/2025.6.0/homeassistant/components/recorder/services.py)
+and [action documentation](https://www.home-assistant.io/actions/recorder.get_statistics/).
 Other display modes only read entity states.
+
+Meter Studio 1.3.8 has not yet been tested on physical Toon 1 hardware.

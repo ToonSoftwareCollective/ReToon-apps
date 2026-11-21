@@ -83,7 +83,7 @@ function maximum(c,r){
  }
  if(positive(c.maximum,0))return Number(c.maximum);
  const u=UNITS[unitKey(r.unit)],base=u&&u[0];
- if(base==='power')return (c.kind==='solar'?5000:5000)/u[1];
+ if(base==='power')return 5000/u[1];
  if(base==='flow')return (c.kind==='gas'?4000/60:20)/u[1];
  if(base==='energy')return (c.mode==='month'?1000:25)/u[1];
  if(base==='volume')return (c.kind==='gas'?(c.mode==='month'?300000:10000):(c.mode==='month'?15000:500))/u[1];
@@ -97,33 +97,24 @@ function point(cx, cy, r, fraction) {
   const a = Math.PI * (1 - fraction);
   return [cx + r * Math.cos(a), cy - r * Math.sin(a)];
 }
-// Shared filled ring ribbon for all meters. Thin radial strokes eliminate the
-// polygonal outline of thick short-line segments. Round only exposed ends.
-const bandCache=new Map();
+// Native arcs retain the existing geometry and keep colour boundaries square.
+// Single-colour tracks and fills have two rounded ends. The outer circles
+// below round just the exposed ends of the three-colour band.
 function ribbon(el,cx,cy,r,width,start,end,color,roundStart=false,roundEnd=false){
  if(end<=start)return;
- const half=width/2, outer=r+half-.5, inner=r-half+.5;
- const cacheKey=[cx,cy,r,width,start,end].join('|');
- let paths=bandCache.get(cacheKey);
- if(!paths){
-  paths=[];
-   const n=Math.max(1,Math.ceil(Math.PI*outer*(end-start)/.65));
-   let points=[];
-   for(let j=0;j<=n;j++){
-    const f=start+(end-start)*j/n,a=point(cx,cy,inner,f),b=point(cx,cy,outer,f);
-    points.push(...(j%2?b:a),...(j%2?a:b));
-    // Bound the size of each polyline, sharing a stroke at the split.
-    if(j===n||points.length>=384){
-     paths.push(points);
-     points=j===n?[]:points.slice(-4);
-    }
-   }
-  if(bandCache.size>=32)bandCache.delete(bandCache.keys().next().value);
-  bandCache.set(cacheKey,paths);
+ el.arc({
+  x:cx,y:cy,r,width,
+  start:180+180*start,end:180+180*end,
+  color,rounded:roundStart&&roundEnd
+ });
+ if(roundStart&&!roundEnd){
+  const [x,y]=point(cx,cy,r,start);
+  el.circle({x,y,r:width/2,bg:color,border:0});
  }
- for(const points of paths)el.line(points,{width:1,color});
- if(roundStart){const [x,y]=point(cx,cy,r,start);el.circle({x,y,r:half,bg:color,border:0});}
- if(roundEnd){const [x,y]=point(cx,cy,r,end);el.circle({x,y,r:half,bg:color,border:0});}
+ if(roundEnd&&!roundStart){
+  const [x,y]=point(cx,cy,r,end);
+  el.circle({x,y,r:width/2,bg:color,border:0});
+ }
 }
 function band(el,cx,cy,r,width){
  const colors=['#43a047','#ffab00','#e04436'],cuts=[0,.47,.79,1];
