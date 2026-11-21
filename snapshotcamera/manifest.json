@@ -1,7 +1,7 @@
 {
   "id": "snapshotcamera",
   "name": "SnapshotCamera",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "api": 10,
   "main": "main.js",
   "description": "Een of twee camera's via de Home Assistant-systeemkoppeling. Kies standaardcamera's onder Apps of een eigen cameralijst per kaart. De kaart toont snapshots; detailvideo is per kaart instelbaar. Interval en fps zijn gedeeld. Vereist ReToon 1.50 of hoger.",

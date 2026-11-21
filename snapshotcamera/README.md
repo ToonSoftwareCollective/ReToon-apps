@@ -1,6 +1,6 @@
-﻿# SnapshotCamera
+# SnapshotCamera
 
-Een of twee camera's via de Home Assistant-systeemkoppeling. De kaart toont snapshots; tik op een camera voor alleen dat beeld in details, met optioneel MJPEG. De ruimte rond de beelden is zwart. Vereist ReToon 1.50 of hoger / app-API 10. Toon 1 is niet getest.
+Een of twee camera's via de Home Assistant-systeemkoppeling. De kaart haalt snapshots op; tik op een camera voor alleen dat beeld in details, met optioneel MJPEG. Een geanimeerde GIF kan ook op de overzichtskaart bewegen, zie Beeldformaten en problemen. De ruimte rond de beelden is zwart. Vereist ReToon 1.50 of hoger / app-API 10. Toon 1 is niet getest.
 
 ## Instellen
 
@@ -26,9 +26,9 @@ Geen apart HA-adres of token nodig: ReToon regelt de serververbinding en authent
 
 ## Upgrade en eerdere testkaarten
 
-Gebruikers van de officiële 1.1.2-release behouden hun bestaande appinstellingen. Zij hebben nog geen oude kaartvelden uit deze PR en hoeven niets te migreren.
+Gebruikers van de officiële 1.1.2-release behouden hun bestaande appinstellingen. Zij hebben nog geen oude kaartvelden uit de eerdere kaartinstellingen-PR en hoeven niets te migreren. De documentatie-update 1.2.2 wijzigt de werking en instellingen van 1.2.1 niet.
 
-Wie de eerdere 1.2.0-testversie uit deze PR gebruikte, moet de opgeslagen kaartinstellingen omzetten voordat de nieuwe versie wordt gebruikt. De oude velden kunnen anders appwaarden blijven overschrijven, ook als het formulier ze niet meer toont. Maak eerst een backup en wijzig uitsluitend SnapshotCamera-kaarten:
+Wie de eerdere 1.2.0-testversie uit [PR #14](https://github.com/ToonSoftwareCollective/ReToon-apps/pull/14) gebruikte, moet de opgeslagen kaartinstellingen omzetten voordat de nieuwe versie wordt gebruikt. De oude velden kunnen anders appwaarden blijven overschrijven, ook als het formulier ze niet meer toont. Maak eerst een backup en wijzig uitsluitend SnapshotCamera-kaarten:
 
 - Met oude useCardSettings uit: verwijder useCardSettings en de oude kaartvelden camera1, camera2, name1, name2, twoCameras, every, stream en fps. De kaart volgt weer de gedeelde waarden.
 - Met oude useCardSettings aan: zet de daadwerkelijk gekozen camera's en namen om naar cardCameras, en zet stream om naar cardDetailMode (mjpeg of snapshot). Verwijder daarna de negen oude velden. Behoud alle andere kaartgegevens en posities.
@@ -46,15 +46,21 @@ Watch-registratie wordt na tekenen samengevoegd; één kaart schrijft de andere 
 
 ## Beeldformaten en problemen
 
-ReToon documenteert baseline/progressive JPEG en PNG, en MJPEG voor bewegend beeld. GIF is niet onderdeel van deze afbeeldingsinterface. Sommige radarcamera's, waaronder de Home Assistant-Buienradar-integratie, leveren een geanimeerde GIF. Een HTTP-header image/jpeg garandeert niet dat de bytes werkelijk JPEG zijn. Zo'n GIF kan daarom leeg blijven, ook als de camera beschikbaar is en HTTP 200 antwoordt.
+ReToon ondersteunt baseline/progressive JPEG en PNG, en MJPEG voor bewegend beeld. Vanaf **ReToon 1.59 / app-API 11** worden ook GIF-afbeeldingen ondersteund, inclusief animatie. Dit is een uitbreiding van ReToons decoder: SnapshotCamera gebruikt dezelfde native `el.image({ camera: ... })`-functie en heeft geen eigen GIF-decoder, URL of extra token nodig.
 
-Voor een GIF-bron is vooraf omzetten naar JPEG/PNG nodig, of GIF-ondersteuning in ReToon zelf. Alleen de extensie of Content-Type aanpassen converteert geen beeld. De app implementeert geen eigen GIF-decoder of stille conversie. Een geanimeerde GIF is evenmin automatisch een MJPEG-stream.
+De algemene minimumversie van de app blijft ReToon 1.50 / API 10 voor de kaartinstellingen. Alleen voor GIF-bronnen is ReToon 1.59 of hoger nodig. Op eerdere versies kan zo'n camera leeg blijven; daar blijft vooraf omzetten naar JPEG/PNG een mogelijkheid. Alleen een extensie of Content-Type aanpassen converteert geen beeld.
+
+**Buienradar:** de Home Assistant-integratie levert een geanimeerde GIF, soms met de misleidende HTTP-header `image/jpeg`. Met ReToon 1.59 of hoger hoeft die niet meer vooraf te worden geconverteerd. Selecteer de radar als gewone camera en kies voor het detailscherm **Snapshots**: ReToon kan de GIF zelf afspelen, zonder er een MJPEG-stream van te maken.
+
+**GIF-animatie is geen MJPEG.** De detailvideo-instelling bepaalt of SnapshotCamera een MJPEG-stream aanvraagt. Zij zet animatie in een GIF niet uit: een bewegende GIF kan dus ook op de overzichtskaart bewegen wanneer die snapshotverzoeken gebruikt. Het snapshotinterval bepaalt het opnieuw ophalen van het bronbestand; de app biedt geen eigen pauze- of stilstaand-frame-instelling voor GIF. De fps-instelling wordt door de app alleen bij een MJPEG-verzoek meegegeven.
+
+De [release-opmerkingen van 1.59](https://github.com/ToonSoftwareCollective/ReToon-images/releases/tag/1.59) noemen de GIF-ondersteuning expliciet, inclusief Buienradar in SnapshotCamera. Deze documentatie-update voegt zelf geen beeldformaatondersteuning toe.
 
 WebRTC-only camera's worden via deze API niet ondersteund. Er is geen rechtstreekse RTSP-/ONVIF-client. Snapshots worden maximaal 640 pixels breed aangevraagd; streams maximaal 640 × 360. De fps is een bovengrens, geen garantie. Verlaag fps of kies snapshots bij haperingen.
 
 Bij een leeg beeld: controleer HA-systeemkoppeling, camerakeuze en het echte beeldformaat. De image-API geeft geen betrouwbare laad-/foutcallback aan de app; er is daarom geen automatische stream-terugval of bevestiging van decodering op het scherm.
 
-De app maakt zelf geen opnamen of logbestanden. ReToon en Home Assistant houden hun eigen netwerk-/cache-/foutafhandeling. Deel geen camerabeelden, getekende URL's, apparaatlogs of persoonlijke instellingen bij publicatie.
+De app maakt zelf geen opnamen of logbestanden. ReToon en Home Assistant houden hun eigen netwerk-/cache-/foutafhandeling. Deel geen camerabeelden, ondertekende URL's, apparaatlogs of persoonlijke instellingen bij publicatie.
 
 ## Licentie
 
