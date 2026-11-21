@@ -251,6 +251,7 @@ Positions are in pixels of the screen as if it is 1024 wide; on a Toon 1
 | `el.button(label, opts, fn)` | A button, 48 px high; `fn()` on a tap |
 | `el.icon("mdi:name", opts)` | A [Material Design icon](https://pictogrammers.com/library/mdi/); `size`: `small` (26 px), `mid` (32), `big` (48) |
 | `el.circle(opts)` | `x`, `y` are the centre, `r` the radius; from level 9 `el.set({ x, y, r })` keeps them that (before, `el.set` took `x`, `y` as its top left) |
+| `el.arc(opts)` | A part of a ring, drawn as one object: a meter's band, the filled part of a gauge, a progress ring. `x`, `y` its centre, `r` the middle of the band (default 50), `width` the band (default 8), `start` and `end` in degrees: 0 is to the right and it goes clockwise, so 180 to 360 is the upper half ring (the default) and 0 to 360 a whole ring; `end` at or before `start` shows nothing. `color` (default `accent`), `opacity` (0–1), `rounded: true` for round ends (default square). `el.set` changes any of these and keeps the others: `fill.set({ end: 180 + 180 * fraction })` moves a meter's fill. Much lighter than building a ring from many short lines, which is slow on a Toon 1. Level 12 |
 | `el.line([x1, y1, x2, y2, ...], opts)` | A line through these points (at least two), with round ends; `width` (default 2), `color`, `opacity`. From level 9 `el.set({ points: [...] })` moves it: a clock's hand or a meter's needle is one line, moved by giving its new end points |
 | `el.flow(opts)` | Dots moving from `x1, y1` to `x2, y2` by themselves; `speed` in pixels a second (below 0 the other way, 0 still), `gap` (30), `size` (8), `color` |
 | `el.time(opts, fn)` | A time picker: an hour wheel and a minute wheel the user scrolls. `value` (`"HH:MM"`), `step` (minutes between the minute wheel's entries, a divisor of 60, default 1), `rows` (visible rows, 1–7, default 3), `font`. `fn("HH:MM")` is called after the user turns a wheel |
@@ -333,6 +334,7 @@ start it.
 | 9 | `el.set({ bg })` on the tile's own `el` colours the whole card; `el.set({ points })` moves a line; `el.set` keeps a circle's `x`, `y` as its centre; settings of type `color` and `select`; the dashboard's colour names (ReToon 1.40 and later) |
 | 10 | The manifest's `cardSettings`: settings per card, in `card.settings`; `retoon.screen`'s `fn` gets the tapped card too (ReToon 1.50 and later) |
 | 11 | `el.image` also decodes GIF pictures, including animation (ReToon 1.59 and later) |
+| 12 | `el.arc`: a part of a ring as one object, for meters and gauges (ReToon 1.66 and later) |
 
 ## Trying it, and publishing it
 

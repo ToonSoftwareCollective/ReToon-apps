@@ -196,6 +196,11 @@ el.button(label, opts, fn)           button, 48 high; fn() on tap
 el.icon("mdi:name", opts)            Material Design icon; opts.size "small"(26) | "mid"(32) | "big"(48)
 el.circle(opts)                      opts.x, opts.y = centre, opts.r = radius (also in
                                      el.set from level 9)
+el.arc(opts)                         part of a ring as one object (level 12): x, y = centre,
+                                     r = middle of the band (50), width (8), start/end in
+                                     degrees (0 right, clockwise; 180-360 = upper half, the
+                                     default); color, opacity, rounded (false); el.set
+                                     changes any of them. Use it for meters, not many lines
 el.line([x1, y1, x2, y2, ...], opts) polyline, at least 2 points (4 numbers); opts.width (2)
 el.flow(opts)                        dots moving x1,y1 -> x2,y2 by themselves; opts.speed px/s
                                      (negative: the other way, 0: still), gap (30), size (8)
@@ -263,6 +268,7 @@ cards are dark grey (`card`).
 - 10 (ReToon 1.50): the manifest's `cardSettings`: settings per card, in
   `card.settings`; `retoon.screen`'s fn gets the tapped card too.
 - 11 (ReToon 1.59): `el.image` also decodes GIF pictures, including animation.
+- 12 (ReToon 1.66): `el.arc`, a part of a ring as one object.
 
 ## The shape of an app
 
