@@ -1,59 +1,63 @@
-# ReToon apps
+# Regenradar (ReToon-app)
 
-Apps for ReToon, the open system for the Eneco/Quby Toon. An app is a small
-JavaScript program that draws its own card on a page of the Toon's screen,
-and optionally a full screen that opens when the card is tapped.
+Neerslagverwachting voor de komende 2 uur, per 5 minuten, van Buienradar.
+Het werkt zoals de regengrafiek op de oude geroote Toon. De kaart toont een
+samenvatting ("Regen vanaf 15:40 (zwaar)", "Komende 2 uur droog") en een
+staafgrafiek. Als je op de kaart tikt, opent het volledige scherm met een
+schaal (licht / matig / zwaar / zeer zwaar), tijden per kwartier, het totaal
+in mm en de zwaarste intensiteit.
 
-| App | What it does |
-|---|---|
-| [snapshotcamera](snapshotcamera) | One or two Home Assistant camera snapshots, independent settings per card and optional MJPEG in single-camera details ([setup](snapshotcamera/README.md)) |
-| [buienradarweer](buienradarweer) | Current weather and a five-day forecast from a Home Assistant weather entity ([setup](buienradarweer/README.md)) |
-| [afval](afval) | When each kind of waste is collected: the next collection on a card, the next six months on the full screen ([setup](docs/afval-app.md)) |
-| [spotenergy](spotenergy) | Dynamic electricity prices for the Netherlands, with taxes, as a card and a full-screen graph |
-| [powerflow](powerflow) | Where the power in your home comes from and goes to, with moving dots |
-| [clock-studio](clock-studio) | Configurable analog, digital, world-map and calendar clock with independent settings per card ([setup](docs/clock-studio/README.md)) |
-| [meter-studio](meter-studio) | Customizable energy, water and indoor climate meters with per-card sensors, styles and details ([setup](meter-studio/README.md)) |
-| [sonos](sonos) | Control Sonos speakers through Home Assistant: the playing group, volume, play/pause, building groups and choosing content ([setup](docs/sonos-app.md)) |
-| [agenda](agenda) | Upcoming events from one or more Home Assistant calendars (iCloud, Google, CalDAV…), with own calendars and title per card ([setup](docs/agenda-app.md)) |
+Vereist ReToon met app-API 2 of hoger (elke recente ReToon).
 
-## Installing an app
+## Installeren (via SSH)
 
-In the Toon's web interface, open **Apps**. Under **Available**, press
-**Install**. The app's settings then appear with the installed apps, and an
-**Update** button appears when a newer version is published here.
+Vanuit een kopie van https://github.com/ToonSoftwareCollective/ReToon-apps:
 
-To show the app, add an **App** card to a page.
+```sh
+tools/push-app.sh <ip-van-de-toon> pad/naar/regenradar
+```
 
-## Making your own
+Of met de hand:
 
-| | |
-|---|---|
-| [docs/writing-apps.md](docs/writing-apps.md) | How an app works, and everything it can use |
-| [docs/example-app](docs/example-app) | A small working app to copy and change |
-| [docs/trying-an-app.md](docs/trying-an-app.md) | Putting your app on your own Toon before it is published |
-| [AGENTS.md](AGENTS.md) | The same, written for AI assistants: give it to yours and describe the app you want |
+```sh
+scp -O -r regenradar root@<ip-van-de-toon>:/tmp/
+ssh root@<ip-van-de-toon>
+mount -o remount,rw /mnt/data
+rm -rf /mnt/data/toon-os/apps/regenradar
+mv /tmp/regenradar /mnt/data/toon-os/apps/regenradar
+mount -o remount,ro /mnt/data
+/etc/init.d/S50toon-ui restart
+```
 
-## Adding your app
+## Instellen
 
-Open a pull request that adds your app's folder at the top level, or changes
-it.
+1. Open in de ReToon-webinterface **Apps > Regenradar**.
+2. Locatie: vul bij **Locatie** een plaats, adres of postcode in, bijvoorbeeld
+   `Putten`, `Dorpsstraat 1 Putten` of `3881 AA`. De app zoekt de coördinaten op
+   via de PDOK Locatieserver van het Kadaster. Vindt die niets (zoals bij een
+   Belgische plaats), dan probeert de app Open-Meteo. Laat je het veld leeg,
+   dan gebruikt de app de breedte- en lengtegraad als die zijn ingevuld, en
+   anders zone Thuis uit Home Assistant. Op het volledige scherm zie je
+   onderaan welke locatie is gevonden, met de coördinaten.
+3. Voeg een App-kaart toe aan een pagina:
 
-- One folder per app, named after its `id`.
-- Raise `version` with every change; the Toons offer an update when the
-  version here is higher than the installed one.
-- Set `api` to the lowest level your app needs.
-- Try it on a Toon first ([docs/trying-an-app.md](docs/trying-an-app.md)).
+```json
+{"type":"custom:retoon-app","app":"regenradar","height":190}
+```
 
-Every pull request is read before it is merged. An app can read your Home
-Assistant states and send data to the internet, so every change is checked.
-The automatic check runs `node --check` on the code and
-`tools/build-index.py` on all apps.
+## Hoe het werkt
 
-When a change reaches `main`, every app is packed as `<id>-<version>.tar.gz`
-and published, with `index.json` and `index.txt`, in the release
-[`apps`](../../releases/tag/apps). That release is what the Toons read.
+- Elke 5 minuten haalt de app de verwachting op bij
+  `gps.buienradar.nl/getrr.php`, hetzelfde adres dat de Buienradar-integratie
+  van Home Assistant gebruikt. Als dat niet lukt, probeert de app
+  `gpsgadget.buienradar.nl/data/raintext`.
+- Omrekening van de Buienradar-waarde naar regenintensiteit:
+  mm/u = 10^((waarde-109)/32).
+- Schaal: licht < 1 mm/u, matig 1-5, zwaar 5-30, zeer zwaar > 30. De
+  grafiek is logaritmisch, zodat ook motregen zichtbaar is.
+- Lukt het ophalen niet, dan blijft de laatste verwachting staan zolang die
+  nog geldig is. Daarna toont de kaart de foutmelding en probeert de app het
+  elke minuut opnieuw.
 
-## Licence
-
-Each app carries its own licence; without one, GPL-2.0-or-later.
-
+De gegevens komen van Buienradar.nl en zijn gratis voor persoonlijk,
+niet-commercieel gebruik.
