@@ -94,7 +94,23 @@ function parse(text) {
 	return out.sort((a, b) => a.t - b.t);
 }
 
+// Eén ophaling tegelijk: komt er een aanroep binnen terwijl er al een loopt
+// (start, zone.home, gewijzigde instelling), dan volgt er daarna één
+// nieuwe ronde in plaats van een tweede, parallelle timer.
+let loading = false, again = false;
+
 async function load() {
+	if (loading) { again = true; return; }
+	loading = true;
+	try {
+		await fetchRain();
+	} finally {
+		loading = false;
+		if (again) { again = false; load(); }
+	}
+}
+
+async function fetchRain() {
 	if (timer) { clearTimeout(timer); timer = null; }
 	const loc = await location();
 	if (loc.error) {
@@ -281,6 +297,50 @@ function unfrac(v) {
 	return Math.pow(10, (v - 0.08) / 0.92 * (Math.log10(50) + 1) - 1);
 }
 
+// Het regenvlak, zuinig getekend (de Toon 1 is traag bij veel elementen).
+// In plaats van een rechthoek per staafje wordt het vlak gevuld met één
+// zigzaglijn: op en neer tussen de bodem en de curve, met een lijndikte die
+// iets groter is dan de stap, zodat de streken een dicht vlak vormen. Lijnen
+// tekent de Toon glad, dus ook de bovenrand is glad. Per kleurtint één lijn
+// (12 tinten), plus één lijn als bovenrand: samen meestal 10-30 elementen.
+const TINTS = 12;
+function drawArea(el, f, x, y, w, gh, big) {
+	const n = f.length;
+	const step = big ? 3 : 2;				// pixels tussen twee streken
+	const cols = Math.max(2, Math.floor(w / step));
+	const sub = cols / n;					// streken per blok
+	const fine = smoothCurve(f, Math.max(1, Math.ceil(sub)));
+	const at = cx => fine[Math.min(fine.length - 1, Math.floor(cx / w * fine.length))];
+	const base = y + gh - step / 2;			// ronde lijnkoppen niet onder de as
+	let run = null;						// { tint, pts, k }
+	const flush = () => {
+		if (run && run.pts.length >= 4)
+			el.line(run.pts, { width: step + 1, color: blend(unfrac((run.tint + 0.5) / TINTS)) });
+		run = null;
+	};
+	for (let c = 0; c < cols; c++) {
+		const cx = (c + 0.5) * step;
+		const v = at(cx);
+		if (v * gh < 1) { flush(); continue; }
+		const tint = Math.min(TINTS - 1, Math.floor(v * TINTS));
+		if (run && run.tint !== tint) flush();
+		if (!run) run = { tint, pts: [], k: 0 };
+		const px = x + cx, top = y + gh - v * gh;
+		// zigzag: even streek omhoog, oneven omlaag
+		if (run.k % 2 === 0) run.pts.push(px, base, px, top);
+		else run.pts.push(px, top, px, base);
+		run.k++;
+	}
+	flush();
+	// bovenrand: één gladde lijn met 4 punten per blok
+	const pts = [];
+	for (let i = 0; i <= n * 4; i++) {
+		const cx = i / (n * 4) * w;
+		pts.push(x + cx, y + gh - at(Math.min(w - 0.01, cx)) * gh);
+	}
+	el.line(pts, { width: big ? 3 : 2, color: COLORS.licht, opacity: 0.9 });
+}
+
 function drawGraph(el, x, y, w, h, big) {
 	const data = upcoming();
 	if (!data.length) return;
@@ -299,28 +359,8 @@ function drawGraph(el, x, y, w, h, big) {
 	if (big) el.text("licht", { x: x - 104, y: y + gh - 30, w: 96, textAlign: "right", font: "small", color: "muted" });
 	el.box({ x, y: y + gh, w, h: 1, bg: "muted", opacity: 0.6 });
 
-	// Vloeiende curve (zie smoothCurve), getekend als smalle staafjes zonder
-	// naad tegen elkaar, als één gevuld vlak.
 	const f = data.map(r => frac(r.mm));
-	const sub = big ? 10 : Math.max(1, Math.min(10, Math.floor(bw / 2)));
-	const m = n * sub;				// aantal staafjes
-	const sw = w / m;
-	const fine = smoothCurve(f, sub);
-	const tops = [];
-	for (let j = 0; j < m; j++) {
-		const v = fine[j];
-		// hele pixels, zodat aangrenzende staafjes naadloos aansluiten
-		const bx = Math.round(x + j * sw), bx2 = Math.round(x + (j + 1) * sw);
-		const bh = v * gh;
-		tops.push(x + (j + 0.5) * sw, y + gh - bh);
-		if (bh >= 0.75)
-			el.box({ x: bx, y: Math.round(y + gh - bh), w: Math.max(1, bx2 - bx), h: Math.round(y + gh) - Math.round(y + gh - bh),
-				bg: blend(unfrac(v)) });
-	}
-	// gladde lijn over de toppen: dekt de trapjes van de staafjes af, zodat de
-	// bovenrand één vloeiende lijn is (de Toon tekent lijnen wel glad)
-	if (f.some(v => v > 0))
-		el.line(tops, { width: big ? 3 : 2, color: COLORS.licht, opacity: 0.9 });
+	if (f.some(v => v > 0)) drawArea(el, f, x, y, w, gh, big);
 
 	// tijden
 	data.forEach((r, i) => {
@@ -383,7 +423,7 @@ retoon.screen(drawScreen);
 retoon.onSettings(() => load());
 
 // locatie Thuis volgen: als die later binnenkomt (HA-verbinding), alsnog laden
-retoon.watch(["zone.home"], () => { if (!rain.length) load(); });
+retoon.watch(["zone.home"], () => { if (!rain.length && !loading) load(); });
 
 // elke minuut opnieuw tekenen, zodat nu-lijn en samenvatting meeschuiven
 setInterval(() => retoon.update(), 60 * 1000);

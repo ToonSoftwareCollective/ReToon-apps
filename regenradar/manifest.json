@@ -1,7 +1,7 @@
 {
 	"id": "regenradar",
 	"name": "Regenradar",
-	"version": "1.6.0",
+	"version": "1.7.0",
 	"api": 2,
 	"main": "main.js",
 	"description": "Neerslagverwachting voor de komende 2 uur per 5 minuten (Buienradar), als grafiek met regenzwaarte, zoals de regenapp van de oude Toon.",
