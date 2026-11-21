@@ -1,12 +1,12 @@
 const MAP=[[-72,-72,-52],[-72,-72,-46],[168,168,-46],[-72,-66,-40],[-66,-54,-34],[138,150,-34],[-66,-54,-28],[18,30,-28],[120,150,-28],[-66,-42,-22],[18,30,-22],[48,48,-22],[120,144,-22],[-72,-42,-16],[12,36,-16],[48,48,-16],[126,132,-16],[144,144,-16],[-78,-36,-10],[18,36,-10],[120,120,-10],[150,150,-10],[-78,-42,-4],[12,36,-4],[120,120,-4],[138,144,-4],[-78,-54,2],[12,42,2],[114,114,2],[-78,-60,8],[-12,48,8],[126,126,8],[-90,-84,14],[-12,36,14],[48,48,14],[78,78,14],[102,108,14],[-102,-102,20],[-90,-90,20],[-12,54,20],[78,84,20],[96,102,20],[-108,-102,26],[-12,30,26],[42,48,26],[60,114,26],[-114,-84,32],[-6,12,32],[24,24,32],[36,120,32],[-120,-78,38],[-6,-6,38],[24,114,38],[126,126,38],[-120,-66,44],[0,24,44],[42,42,44],[54,132,44],[144,144,44],[-126,-72,50],[6,144,50],[-132,-90,56],[-72,-66,56],[12,12,56],[24,132,56],[156,162,56],[-162,-96,62],[-78,-78,62],[-48,-48,62],[6,12,62],[24,174,62],[-162,-120,68],[-108,-108,68],[-90,-84,68],[-72,-66,68],[-48,-36,68],[18,36,68],[54,174,68],[-120,-120,74],[-54,-24,74],[90,108,74],[-96,-18,80],[24,24,80],[96,96,80]];
-// Clock Studio 1.4.7. ReToon API 10: appearance belongs to each card.
+// Clock Studio 1.4.8. ReToon API 10: appearance belongs to each card.
 const THEME={blauw:['#86b5ff','#b58aff'],paars:['#c49aff','#b58aff'],wit:['#eef1f7','#eef1f7'],rood:['#ff625b','#ff625b'],groen:['#69d6b1','#69d6b1']};
 const PROFILE_KEYS=['layout','title','theme','background','foreground','accent','hour_color','minute_color','second_color','show_seconds','show_date','clock_24','clock_scale','corner_radius','hour_hand','minute_hand','hand_width','round_hands','center_size','minute_ticks','numbers','dial_border','place','latitude','longitude'];
 // Take a separate snapshot for every drawing. Never share a card's profile with another.
 function settingsFor(card){
  const raw=card&&card.settings||{},s={...raw};
- try{const profile=JSON.parse(String(raw.advanced_profile||'').trim()||'{}');if(profile&&typeof profile==='object'&&!Array.isArray(profile))for(const k of PROFILE_KEYS)if(Object.prototype.hasOwnProperty.call(profile,k))s[k]=profile[k];}catch(e){}
- const theme=THEME[s.theme]||THEME.blauw,layout=String(s.layout||'world').trim().toLowerCase();
+ if(raw.use_advanced_profile===true)try{const profile=JSON.parse(String(raw.advanced_profile||'').trim()||'{}');if(profile&&typeof profile==='object'&&!Array.isArray(profile))for(const k of PROFILE_KEYS)if(Object.prototype.hasOwnProperty.call(profile,k))s[k]=profile[k];}catch(e){}
+ const theme=THEME[s.theme]||THEME.blauw,layout=String(s.layout||'minimal').trim().toLowerCase();
  return {...s,layout:FACES.includes(layout)?layout:'auto',accent:s.accent||theme[0],hour_color:s.hour_color||theme[1],minute_color:s.minute_color||'#eef1f7',second_color:s.second_color||'#ffbd6a'};
 }
 const shared=()=>retoon.settings||{};
@@ -64,19 +64,24 @@ function analog(d,el,r,n,p,style){
  if(showSec)hand(d,el,n,now=>[...pt(now.getSeconds()/60+.5,.17),...pt(now.getSeconds()/60,.87)],Math.max(1,rad*.009),p.second,false);
  el.circle({x:cx,y:cy,r:Math.max(4,rad*num(s,'center_size',5.7,2,12)/100),bg:p.minute,border:0});
 }
-// Classic 45-degree chamfered seven-segment LED geometry. Each segment
-// comprises one rectangular centre and two square-ended diagonal strokes.
-// The stroke length equals its width, forming the diamond-shaped caps;
-// overlapping the centre yields a filled hexagon without dozens of strips.
+// Fill each hexagonal LED segment with one retained, fine zigzag polyline.
+// Thick diagonal lines have rounded ends in ReToon, so they cannot form
+// sharp caps. Closely spaced, one-pixel strokes follow the 45-degree edges.
+// The middle scanline reaches the tip; all other rows taper symmetrically.
+// One LVGL element per segment, even on the full screen.
 const SEGMENTS={a:[5,0,50,10],b:[50,7,10,38],c:[50,55,10,38],d:[5,90,50,10],e:[0,55,10,38],f:[0,7,10,38],g:[5,45,50,10]};
 function ledSegment(el,x,y,w,h,color){
- const horizontal=w>=h,t=horizontal?h:w,cx=x+w/2,cy=y+h/2;
- const nodes=[];
- if(horizontal)nodes.push({node:el.box({x:x+t/2,y,w:w-t,h,bg:color,radius:0,border:0}),prop:'bg'});
- else nodes.push({node:el.box({x,y:y+t/2,w,h:h-t,bg:color,radius:0,border:0}),prop:'bg'});
- const centers=horizontal?[[x+t/2,cy],[x+w-t/2,cy]]:[[cx,y+t/2],[cx,y+h-t/2]];
- for(const [a,b] of centers){const q=t/4;nodes.push({node:el.line([a-q,b-q,a+q,b+q],{width:t/Math.SQRT2,color}),prop:'color'});}
- return nodes;
+ const horizontal=w>=h,t=horizontal?h:w,length=horizontal?w:h;
+ const inset=Math.min(.5,t/4),span=t-2*inset;
+ // An even number of intervals includes the exact centre and both edges.
+ const rows=Math.max(2,2*Math.ceil(span/2)),points=[];
+ for(let i=0;i<=rows;i++){
+  const v=inset+span*i/rows,cut=Math.abs(v-t/2)+inset;
+  const a=i%2?length-cut:cut,b=i%2?cut:length-cut;
+  if(horizontal)points.push(x+a,y+v,x+b,y+v);
+  else points.push(x+v,y+a,x+v,y+b);
+ }
+ return el.line(points,{width:1,color});
 }
 const SEGMENT_DIGITS={'0':'abcdef','1':'bc','2':'abdeg','3':'abcdg','4':'bcfg','5':'acdfg','6':'acdefg','7':'abc','8':'abcdefg','9':'abcdfg'};
 function unlitColor(color,bg){
@@ -98,7 +103,7 @@ function digits(d,el,n,valueFor,r,color,bg,colonFor=()=>true){
   const next=valueFor(now);
   if(next!==previous){for(const cell of cells){if(next[cell.i]===previous[cell.i])continue;
    const before=SEGMENT_DIGITS[previous[cell.i]]||'',after=SEGMENT_DIGITS[next[cell.i]]||'';
-   for(const key of 'abcdefg')if(before.includes(key)!==after.includes(key))for(const part of cell.nodes[key])part.node.set({[part.prop]:after.includes(key)?color:off});
+   for(const key of 'abcdefg')if(before.includes(key)!==after.includes(key))cell.nodes[key].set({color:after.includes(key)?color:off});
   }previous=next;}
   const colon=colonFor(now);if(colon!==lastColon){for(const dot of dots)dot.set({opacity:colon?1:0});lastColon=colon;}
  });
@@ -158,7 +163,7 @@ function draw(el,card,full=false){
  else if(f==='calendar'){d.calendar=true;d.agendaDots=agendaDotKey(n);const left=Math.min(r.w*.47,r.h);analog(d,el,{x:r.x,y:r.y,w:left,h:r.h},n,p,'classic');calendar(d,el,{x:r.x+left+24,y:r.y+12,w:r.w-left-24,h:r.h-24},n,p);}
  else analog(d,el,r,n,p,f);
  if(showDate)liveText(d,el,n,now=>dateText(now,w<330),8,h-25,full&&w>=400?w-210:w-16,'small',p.muted);
- if(full&&w>=400)text(el,'Clock Studio 1.4.7',Math.max(8,w-188),h-23,178,'small',p.muted,'right');
+ if(full&&w>=400)text(el,'Clock Studio 1.4.8',Math.max(8,w-188),h-23,178,'small',p.muted,'right');
  remember(d,n);
 }
 retoon.tile((el,card)=>draw(el,card,false));
@@ -202,7 +207,6 @@ function upcoming(n){const end=new Date(n.getFullYear(),n.getMonth(),n.getDate()
 async function loadAgenda(){
  const id=agendaId();if(!id||agendaBusy)return;
  if(!/^calendar\.[a-z0-9_]+$/.test(id)){agendaStatus='Kies een calendar.-entiteit';agendaRedraw();return;}
- if(typeof retoon.call!=='function'){agendaStatus='ReToon 1.50+ nodig';agendaRedraw();return;}
  const gen=agendaGeneration,n=new Date(),start=new Date(n.getFullYear(),n.getMonth(),1),end=new Date(Math.max(+new Date(n.getFullYear(),n.getMonth()+1,1),+new Date(n.getFullYear(),n.getMonth(),n.getDate()+num(shared(),'agenda_days',14,1,60))));
  agendaBusy=true;agendaAttempt=Date.now();if(!agendaLoaded)agendaStatus='Agenda laden…';
  try{
