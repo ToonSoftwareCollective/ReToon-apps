@@ -15,6 +15,7 @@ and optionally a full screen that opens when the card is tapped.
 | [meter-studio](meter-studio) | Customizable energy, water and indoor climate meters with per-card sensors, styles and details ([setup](meter-studio/README.md)) |
 | [sonos](sonos) | Control Sonos speakers through Home Assistant: the playing group, volume, play/pause, building groups and choosing content ([setup](docs/sonos-app.md)) |
 | [agenda](agenda) | Upcoming events from one or more Home Assistant calendars (iCloud, Google, CalDAV…), with own calendars and title per card ([setup](docs/agenda-app.md)) |
+| [regenradar](regenradar) | Rain forecast for the next two hours from Buienradar, per 5 minutes, as a graph coloured by how heavy the rain is ([setup](regenradar/README.md)) |
 
 ## Installing an app
 
