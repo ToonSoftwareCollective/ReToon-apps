@@ -388,7 +388,9 @@ function header(el, big) {
 	el.text(s.text, { x: big ? 60 : 44, y: tiny ? 8 : 4, font: big ? "mid" : tiny ? "small" : narrow ? "body" : "head",
 		color: s.kind === "none" && error ? "bad" : "text" });
 	const place = S().place || (where ? shortName(where.name) : "");
-	if (place && !narrow) el.text(place, { x: 0, y: 0, align: "top-right", font: "small", color: "muted" });
+	// plaatsnaam alleen als aangevinkt, en alleen op de kaart: op het grote
+	// scherm staat rechtsboven de sluitknop, en de locatie staat daar onderaan
+	if (S().showPlace && place && !narrow && !big) el.text(place, { x: 0, y: 0, align: "top-right", font: "small", color: "muted" });
 }
 
 function drawTile(el) {
@@ -412,7 +414,7 @@ function drawScreen(el) {
 	if (where) {
 		const loc = (where.name || where.src) + " (" + where.lat.toFixed(2).replace(".", ",") + " / " +
 			where.lon.toFixed(2).replace(".", ",") + ")";
-		el.text("Locatie: " + loc, { x: 0, y: 26, align: "bottom-left", font: "small", color: "muted" });
+		el.text("Locatie: " + loc, { x: 0, y: -26, align: "bottom-left", font: "small", color: "muted" });
 	}
 	el.text(info, { x: 0, y: 0, align: "bottom-left", font: "small", color: error ? "bad" : "muted" });
 }
