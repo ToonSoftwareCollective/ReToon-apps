@@ -24,7 +24,11 @@ kies **Install**.
    dan gebruikt de app de breedte- en lengtegraad als die zijn ingevuld, en
    anders zone Thuis uit Home Assistant. Op het volledige scherm zie je
    onderaan welke locatie is gevonden, met de coördinaten.
-3. Voeg een App-kaart toe aan een pagina:
+3. Vink **Locatie op de gewone kaart tonen** aan als je rechtsboven op de kaart
+   de plaats wilt zien, bijvoorbeeld als de app op een andere plek dan thuis
+   is ingesteld. Bij **Naam op de kaart** kun je een eigen naam opgeven; leeg
+   betekent de plaatsnaam van de gevonden locatie.
+4. Voeg een App-kaart toe aan een pagina:
 
 ```json
 {"type":"custom:retoon-app","app":"regenradar","height":190}
