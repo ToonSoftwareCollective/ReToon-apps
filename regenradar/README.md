@@ -24,11 +24,16 @@ kies **Install**.
    dan gebruikt de app de breedte- en lengtegraad als die zijn ingevuld, en
    anders zone Thuis uit Home Assistant. Op het volledige scherm zie je
    onderaan welke locatie is gevonden, met de coördinaten.
-3. Vink **Locatie op de gewone kaart tonen** aan als je rechtsboven op de kaart
-   de plaats wilt zien, bijvoorbeeld als de app op een andere plek dan thuis
-   is ingesteld. Bij **Naam op de kaart** kun je een eigen naam opgeven; leeg
-   betekent de plaatsnaam van de gevonden locatie.
-4. Voeg een App-kaart toe aan een pagina:
+3. **Locatie op de gewone kaart tonen** staat standaard aan: dan staat de
+   plaats rechtsboven op de kaart. Haal het vinkje weg als je dat niet wilt.
+   Bij **Naam op de kaart** kun je een eigen naam opgeven; leeg betekent de
+   plaatsnaam van de gevonden locatie.
+4. **Buitentemperatuur tonen** staat standaard aan: de app neemt de
+   temperatuur van het Buienradar-weerstation dat het dichtst bij de locatie
+   ligt (op het volledige scherm staat onderaan welk station en hoe ver weg).
+   Kies je bij **Eigen temperatuursensor** een sensor uit Home Assistant, dan
+   gaat die voor. Geeft die sensor geen waarde, dan toont de kaart "– °C".
+5. Voeg een App-kaart toe aan een pagina:
 
 ```json
 {"type":"custom:retoon-app","app":"regenradar","height":190}
@@ -49,6 +54,9 @@ kies **Install**.
 - Het regenvlak wordt getekend met een paar zigzaglijnen (één per kleurtint)
   in plaats van met losse staafjes: meestal 10 tot 40 elementen, zodat het
   ook op een Toon 1 vlot blijft.
+- De temperatuur komt uit `data.buienradar.nl/2.0/feed/json` (actuele
+  metingen per station, elke 10 minuten), dezelfde bron als de
+  Buienradar-integratie van Home Assistant.
 - Lukt het ophalen niet, dan blijft de laatste verwachting staan zolang die
   nog geldig is. Daarna toont de kaart de foutmelding en probeert de app het
   elke minuut opnieuw.
