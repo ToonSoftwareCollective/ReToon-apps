@@ -2,8 +2,10 @@
 // BuienradarWeer: ReToon / QuickJS, no external requests.
 const CONDITIONS = {
     sunny: ["Zonnig", "weather-sunny"],
+    clear: ["Helder", "weather-sunny"],
     "clear-night": ["Heldere nacht", "weather-night"],
     partlycloudy: ["Half bewolkt", "weather-partly-cloudy"],
+    "partlycloudy-night": ["Half bewolkt", "weather-night-partly-cloudy"],
     cloudy: ["Bewolkt", "weather-cloudy"],
     fog: ["Mist", "weather-fog"],
     rainy: ["Regen", "weather-rainy"],
@@ -20,6 +22,38 @@ const CONDITIONS = {
 function entity() {
     return String(retoon.settings.entity || "").trim();
 }
+function sunEntity() {
+    return String(retoon.settings.sunEntity || "").trim() || "sun.sun";
+}
+function currentCondition(raw) {
+    const state = String(raw || "").trim().toLowerCase();
+    // Daily forecasts describe a day, not the sky at the current time.
+    // Only current conditions use the HA sun entity; never infer night from a clock.
+    const sun = retoon.state(sunEntity());
+    if (sun && sun.state === "below_horizon") {
+        if (state === "sunny" || state === "clear") return "clear-night";
+        if (state === "partlycloudy") return "partlycloudy-night";
+    }
+    if (state === "clear" && sun && sun.state === "above_horizon") return "sunny";
+    return state;
+}
+function watchSources(id) {
+    const ids = id ? [id] : [];
+    if (id && ids.indexOf(sunEntity()) < 0) ids.push(sunEntity());
+    const sunId = sunEntity();
+    let lastSunState = null;
+    retoon.watch(ids, changedId => {
+        if (changedId === sunId && changedId !== id) {
+            const sun = retoon.state(sunId);
+            const state = sun && sun.state || null;
+            // Sun elevation/azimuth can change frequently; only the day/night
+            // state affects our display. Weather attribute changes still redraw.
+            if (state === lastSunState) return;
+            lastSunState = state;
+        }
+        retoon.update();
+    });
+}
 function cardSettings(card) {
     return Object.assign({}, retoon.settings, card && card.settings || {});
 }
@@ -31,6 +65,7 @@ let forecast = [];
 let forecastUnit = "";
 let forecastMessage = "Kies een weerentiteit bij Apps";
 let followedEntity = null;
+let followedSun = null;
 let forecastGeneration = 0;
 let forecastInFlight = -1;
 let forecastTimer = null;
@@ -108,12 +143,13 @@ function model(settings) {
     const st = id ? retoon.state(id) : null;
     const available = !!st && !!st.state && st.state !== "unavailable" && st.state !== "unknown";
     const a = available ? (st.attributes || {}) : {};
-    const condition = available ? (CONDITIONS[st.state] || ["Onbekende weerconditie", "weather-cloudy"]) : [!id ? "Kies een weerentiteit bij Apps" : st ? "Weer niet beschikbaar" : "Wachten op Home Assistant", "cloud-question"];
-    return { id: id, available: available, a: a, condition: condition, state: available ? st.state : "unknown",
+    const state = available ? currentCondition(st.state) : "unknown";
+    const condition = available ? (CONDITIONS[state] || ["Onbekende weerconditie", "weather-cloudy"]) : [!id ? "Kies een weerentiteit bij Apps" : st ? "Weer niet beschikbaar" : "Wachten op Home Assistant", "cloud-question"];
+    return { id: id, available: available, a: a, condition: condition, state: state,
         title: short(String(settings.cardTitle || "").trim() || settings.title || (st && st.name) || "Weer", 30),
         customIconColor: settings.iconColor || "",
         temp: measure(a.temperature, a.temperature_unit, 1),
-        iconColor: !available ? "muted" : settings.iconColor || ({ sunny: "#f6c453", "clear-night": "#b8b7f0", partlycloudy: "#e4c779", cloudy: "#aebed0", fog: "#aebed0", rainy: "#65b6ef", pouring: "#65b6ef", snowy: "#a9deed", "snowy-rainy": "#a9deed", hail: "#a9deed", lightning: "#e4b268", "lightning-rainy": "#e4b268", exceptional: "#ed956f" }[st.state] || "accent"),
+        iconColor: !available ? "muted" : settings.iconColor || ({ clear: "#f6c453", sunny: "#f6c453", "partlycloudy-night": "#aebed0", "clear-night": "#b8b7f0", partlycloudy: "#e4c779", cloudy: "#aebed0", fog: "#aebed0", rainy: "#65b6ef", pouring: "#65b6ef", snowy: "#a9deed", "snowy-rainy": "#a9deed", hail: "#a9deed", lightning: "#e4b268", "lightning-rainy": "#e4b268", exceptional: "#ed956f" }[state] || "accent"),
         feels: measure(a.apparent_temperature, a.temperature_unit, 1),
         wind: measure(a.wind_speed, a.wind_speed_unit, 1) };
 }
@@ -137,10 +173,11 @@ function weatherIcon(el, m, x, y, size) {
     const circle = (cx, cy, r, color) => el.circle({ x: x + cx * k, y: y + cy * k, r: r * k, bg: color });
     const line = (points, color, width) => el.line(points.map((v, i) => (i % 2 ? y : x) + v * k), { color: color, width: Math.max(1, width * k) });
     const cloud = () => {
-        circle(30, 56, 19, m.iconColor);
-        circle(47, 43, 25, m.iconColor);
-        circle(69, 56, 23, m.iconColor);
-        el.box({ x: x + 28 * k, y: y + 55 * k, w: 43 * k, h: 24 * k, bg: m.iconColor, radius: 4 * k });
+        const down = m.state === "partlycloudy-night" ? 8 : 0;
+        circle(30, 56 + down, 19, m.iconColor);
+        circle(47, 43 + down, 25, m.iconColor);
+        circle(69, 56 + down, 23, m.iconColor);
+        el.box({ x: x + 28 * k, y: y + (55 + down) * k, w: 43 * k, h: 24 * k, bg: m.iconColor, radius: 4 * k });
     };
     const sun = (cx, cy, r) => {
         circle(cx, cy, r, m.customIconColor || "#f6c453");
@@ -149,22 +186,29 @@ function weatherIcon(el, m, x, y, size) {
             line([cx + Math.cos(a) * (r + 6), cy + Math.sin(a) * (r + 6), cx + Math.cos(a) * (r + 13), cy + Math.sin(a) * (r + 13)], m.customIconColor || "#f6c453", 4);
         }
     };
+    const moon = (cx, cy, radius) => {
+        // Horizontal strokes form a crescent without a background-colour mask.
+        // It therefore also works behind a cloud and on per-card backgrounds.
+        for (let row = -radius + 3; row <= radius - 3; row += 3) {
+            const edge = Math.sqrt(radius * radius - row * row);
+            const innerY = row + radius * 0.3;
+            const innerR = radius * 28 / 30;
+            const inner = Math.abs(innerY) < innerR ? radius * 0.4 - Math.sqrt(innerR * innerR - innerY * innerY) : edge;
+            if (inner > -edge) line([cx - edge, cy + row, cx + Math.min(edge, inner), cy + row], m.customIconColor || "#b8b7f0", 4);
+        }
+    };
     if (!m.available || m.state === "exceptional") {
         el.icon("mdi:" + m.condition[1], { x: x + size / 4, y: y + size / 4, size: "big", color: m.iconColor });
-    } else if (m.state === "sunny") sun(50, 48, 25);
+    } else if (m.state === "sunny" || m.state === "clear") sun(50, 48, 25);
     else if (m.state === "clear-night") {
-        // A crescent built from horizontal strokes, without a background mask.
-        for (let row = -27; row <= 27; row += 3) {
-            const edge = Math.sqrt(30 * 30 - row * row);
-            const inner = Math.abs(row + 9) < 28 ? 12 - Math.sqrt(28 * 28 - (row + 9) * (row + 9)) : edge;
-            if (inner > -edge) line([50 - edge, 48 + row, 50 + Math.min(edge, inner), 48 + row], m.iconColor, 4);
-        }
+        moon(50, 48, 30);
     } else if (m.state === "windy" || m.state === "windy-variant") {
         line([9, 33, 74, 33, 83, 25, 78, 17, 67, 17], m.iconColor, 5);
         line([3, 51, 89, 51], m.iconColor, 5);
         line([17, 69, 67, 69, 76, 77, 71, 85, 60, 85], m.iconColor, 5);
     } else {
         if (m.state === "partlycloudy") sun(68, 28, 16);
+        if (m.state === "partlycloudy-night") moon(74, 24, 23);
         cloud();
         if (m.state.includes("lightning")) line([54, 64, 42, 82, 56, 82, 46, 98], m.customIconColor || "#f6c453", 5);
         else if (["rainy", "pouring", "snowy-rainy"].indexOf(m.state) >= 0) {
@@ -258,15 +302,20 @@ function screen(el, card) {
 function follow() {
     const id = entity();
     // Presentation changes never invalidate the shared forecast or restart a request.
-    if (id === followedEntity) { retoon.update(); return; }
+    if (id === followedEntity) {
+        if (followedSun !== sunEntity()) { followedSun = sunEntity(); watchSources(id); }
+        retoon.update();
+        return;
+    }
     followedEntity = id;
+    followedSun = sunEntity();
     const generation = ++forecastGeneration;
     if (forecastTimer !== null) clearTimeout(forecastTimer);
     forecastTimer = null;
     forecast = [];
     forecastUnit = "";
     forecastMessage = id ? "Verwachting laden\u2026" : "Kies een weerentiteit bij Apps";
-    retoon.watch(id ? [id] : [], () => retoon.update());
+    watchSources(id);
     retoon.update();
     if (id) loadForecast(generation);
 }
