@@ -442,7 +442,7 @@ function header(el, big) {
 	el.icon(icon, { x: 0, y: 0, size: big ? "big" : "mid", color: col });
 	// op het grote scherm staat rechtsboven de sluitknop: daar komt de
 	// temperatuur direct achter de verwachting
-	const text = big && temp ? s.text + "   ·   " + temp : s.text;
+	const text = big && temp ? s.text + "   |   " + temp : s.text;
 	el.text(text, { x: big ? 60 : 44, y: tiny ? 8 : 4, font: big ? "mid" : tiny ? "small" : narrow ? "body" : "head",
 		color: s.kind === "none" && error ? "bad" : "text" });
 	if (big) return;
