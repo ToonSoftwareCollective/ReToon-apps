@@ -168,12 +168,12 @@ function temperature(el, m, x, y, large) {
     if (unit) text(el, unit, x + width + 5, y + (large ? 10 : 4), large ? "mid" : "small");
 }
 // Scalable vector weather symbols using documented API primitives.
-function weatherIcon(el, m, x, y, size) {
+function weatherIcon(el, m, x, y, size, background) {
     const k = size / 100;
     const circle = (cx, cy, r, color) => el.circle({ x: x + cx * k, y: y + cy * k, r: r * k, bg: color });
     const line = (points, color, width) => el.line(points.map((v, i) => (i % 2 ? y : x) + v * k), { color: color, width: Math.max(1, width * k) });
     const cloud = () => {
-        const down = m.state === "partlycloudy-night" ? 8 : 0;
+        const down = m.state === "partlycloudy-night" ? 12 : 0;
         circle(30, 56 + down, 19, m.iconColor);
         circle(47, 43 + down, 25, m.iconColor);
         circle(69, 56 + down, 23, m.iconColor);
@@ -187,15 +187,10 @@ function weatherIcon(el, m, x, y, size) {
         }
     };
     const moon = (cx, cy, radius) => {
-        // Horizontal strokes form a crescent without a background-colour mask.
-        // It therefore also works behind a cloud and on per-card backgrounds.
-        for (let row = -radius + 3; row <= radius - 3; row += 3) {
-            const edge = Math.sqrt(radius * radius - row * row);
-            const innerY = row + radius * 0.3;
-            const innerR = radius * 28 / 30;
-            const inner = Math.abs(innerY) < innerR ? radius * 0.4 - Math.sqrt(innerR * innerR - innerY * innerY) : edge;
-            if (inner > -edge) line([cx - edge, cy + row, cx + Math.min(edge, inner), cy + row], m.customIconColor || "#b8b7f0", 4);
-        }
+        // An independently constructed crescent: two anti-aliased circles,
+        // rather than scanlines. Match the actual parent background for the cutout.
+        circle(cx, cy, radius, m.customIconColor || "#b8b7f0");
+        circle(cx + radius * 0.45, cy - radius * 0.35, radius * 0.94, background);
     };
     if (!m.available || m.state === "exceptional") {
         el.icon("mdi:" + m.condition[1], { x: x + size / 4, y: y + size / 4, size: "big", color: m.iconColor });
@@ -208,7 +203,7 @@ function weatherIcon(el, m, x, y, size) {
         line([17, 69, 67, 69, 76, 77, 71, 85, 60, 85], m.iconColor, 5);
     } else {
         if (m.state === "partlycloudy") sun(68, 28, 16);
-        if (m.state === "partlycloudy-night") moon(74, 24, 23);
+        if (m.state === "partlycloudy-night") moon(68, 31, 23);
         cloud();
         if (m.state.includes("lightning")) line([54, 64, 42, 82, 56, 82, 46, 98], m.customIconColor || "#f6c453", 5);
         else if (["rainy", "pouring", "snowy-rainy"].indexOf(m.state) >= 0) {
@@ -238,7 +233,7 @@ function tile(el, card) {
     const iconSize = el.height < 100 || el.width < 210 ? 72 : 96;
     const titleWidth = Math.max(1, el.width - iconSize - 8);
     text(el, short(m.title, Math.max(3, Math.min(30, Math.floor(titleWidth / 12)))), 0, 0, "head", "text", titleWidth);
-    weatherIcon(el, m, el.width - iconSize, 0, iconSize);
+    weatherIcon(el, m, el.width - iconSize, 0, iconSize, settings.background || "card");
     temperature(el, m, 0, 33, !compact && !narrow);
     if (el.height >= 105) text(el, short(m.condition[0], narrow ? 22 : 36), 0, compact || narrow ? 77 : 119, "body", "muted", el.width);
     const showPressure = settings.showPressure !== false;
@@ -262,7 +257,7 @@ function screen(el, card) {
     const m = model(settings), a = m.a;
     const pad = 24, right = el.width - pad;
     text(el, m.title, pad, 4, "head");
-    weatherIcon(el, m, pad, 39, 112);
+    weatherIcon(el, m, pad, 39, 112, settings.background || "background");
     text(el, m.condition[0], 158, 59, "mid", "text", el.width - 470);
     if (!m.available) text(el, "Controleer de verbinding met Home Assistant", 158, 103, "small", "muted");
     temperature(el, m, el.width - 255, 37, true);

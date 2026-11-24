@@ -65,3 +65,10 @@ tools/push-app.sh <toon-adres> <pad-naar-buienradarweer>
 Dit installeert de app en herstart de scherminterface. Controleer daarna de kaart, het detailscherm, de voorspelling en de verversing bij attribuutwijzigingen. De app gebruikt uitsluitend de gedocumenteerde [ReToon-app-API](https://github.com/ToonSoftwareCollective/ReToon-apps/blob/main/docs/writing-apps.md).
 
 Licentie: GPL-2.0-or-later. Dit project is een onafhankelijke ReToon-app en is niet verbonden aan Buienradar.
+
+
+## Maanvorm
+
+De grote maansikkel gebruikt twee anti-aliased cirkels in plaats van losse lijnstroken. De uitsparing volgt de werkelijke achtergrond van kaart of detailscherm, ook bij een eigen kleur. Bij halfbewolkt weer wordt de wolk daarna voor de maan getekend. De vorm blijft daarmee vloeiend en instelbaar zonder externe afbeeldingen te downloaden.
+
+Visuele referentie: de eenvoudige gevulde maansikkels uit de [Iconpacks-collectie](https://www.iconpacks.net/moon-icons.html?color=monocolor&order_by=1). Dit is een eigen geometrische uitvoering; er worden geen SVG-code of afbeeldingsbestanden van die website meegedistribueerd.
