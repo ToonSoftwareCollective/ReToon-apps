@@ -1,6 +1,6 @@
 # BuienradarWeer
 
-Actueel weer en vijfdaagse verwachting voor ReToon, via de bestaande Home Assistant-verbinding. Vereist app-API 10 (ReToon 1.50 of hoger); ontwikkeld voor ReToon 1.53. Toon 1 is niet getest.
+Actueel weer en vijfdaagse verwachting voor ReToon, via de bestaande Home Assistant-verbinding. Vereist app-API 10 (ReToon 1.50 of hoger). Toon 1 is niet getest.
 
 De kaart toont een groot gekleurd weericoon, temperatuur met kleinere eenheid en, bij voldoende hoogte, luchtdruk en wind. Aantikken opent het detailscherm met gevoelstemperatuur, luchtdruk, luchtvochtigheid, windrichting, zicht en vijf dagen verwachting met minimum- en maximumtemperaturen en regenkans. Ontbrekende waarden verschijnen als een streepje.
 
@@ -13,6 +13,14 @@ De kaart toont een groot gekleurd weericoon, temperatuur met kleinere eenheid en
 ```json
 {"type":"custom:retoon-app","app":"buienradarweer","height":220}
 ```
+
+## Dag en nacht
+
+Voor actuele heldere en halfbewolkte omstandigheden volgt de app ook de Home Assistant-zonstatus. Standaard is dat `sun.sun`: `below_horizon` betekent nacht en `above_horizon` betekent dag. Daardoor verandert het icoon bij zonsondergang ook wanneer de weerentiteit `sunny` of `partlycloudy` blijft melden. Een heldere nacht krijgt een maan en de tekst **Heldere nacht**; bij halfbewolkt weer staat de maan achter een wolk. Een expliciete `clear-night` van de weerbron blijft gerespecteerd. Ook de alias `clear` wordt herkend.
+
+Onder **Apps > BuienradarWeer** kun je een andere zon-entiteit selecteren. Leeg gebruikt automatisch `sun.sun`; je hoeft daarvoor niets aan bestaande kaarten te wijzigen. Gebruik een zon-entiteit die bij de locatie van je weerbron past. Ontbreekt een geldige zonstatus, dan behoudt de app de conditie van de weerbron en gokt hij niet op basis van een vaste kloktijd. Zie de [HA Sun-documentatie](https://www.home-assistant.io/integrations/sun/).
+
+De correctie geldt voor de actuele toestand op kaart en detailscherm, inclusief zeer kleine kaarten. Dagelijkse voorspellingen beschrijven hele dagen en worden niet in nachticonen veranderd wanneer het op dit moment donker is. Eigen icoonkleuren blijven behouden. Een zonwijziging tekent alleen opnieuw en vraagt geen nieuwe voorspelling op.
 
 ## Instellingen per kaart
 
@@ -40,9 +48,9 @@ De datum in de dagelijkse voorspelling bepaalt het daglabel; verlopen dagen word
 
 ## Privacy en servicebevoegdheid
 
-Alleen de gekozen weerentiteit wordt gevolgd. De enige gedeclareerde HA-service is `weather.get_forecasts`; de app stuurt geen thermostaat, lamp of ander apparaat aan. Er zijn geen eigen tokens, rechtstreekse externe netwerkverzoeken, telemetrie of loguitvoer van weergegevens. ReToon bewaart de instellingen lokaal. In de publicatieversie begint de entiteitskeuze leeg.
+Alleen de gekozen weerentiteit en de zon-entiteit worden gevolgd. De enige gedeclareerde HA-service is `weather.get_forecasts`; de app stuurt geen thermostaat, lamp of ander apparaat aan. Er zijn geen eigen tokens, rechtstreekse externe netwerkverzoeken, telemetrie of loguitvoer van weergegevens. ReToon bewaart de instellingen lokaal. In de publicatieversie begint de entiteitskeuze leeg.
 
-## Bijwerken vanaf 1.0.x of 1.1.x
+## Bijwerken vanaf 1.0.x, 1.1.x of 1.2.x
 
 Je bestaande weerentiteit en plaatsnaam blijven bruikbaar. De twintig oude dagsensorkeuzes worden niet meer gebruikt; opnieuw selecteren is niet nodig. Verwijder de bijbehorende HA-sensoren alleen als je ze nergens anders meer gebruikt. De nieuwe versie heeft app-API 10 nodig. Werk ReToon eerst bij naar 1.50 of hoger. Kaarten zonder eigen instellingen houden de standaardweergave; er is geen handmatige migratie van pagina-instellingen nodig.
 
