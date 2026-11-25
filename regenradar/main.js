@@ -110,6 +110,51 @@ async function load() {
 	}
 }
 
+// ---- temperatuur van het dichtstbijzijnde Buienradar-weerstation ------------
+const TEMP_URL = "https://data.buienradar.nl/2.0/feed/json";
+const TEMP_EVERY = 10 * 60 * 1000;	// stations meten elke 10 minuten
+let station = null;	// { temp, name, km, at, lat, lon }: laatst gelezen station
+let tempBusy = false, tempTried = 0, tempFor = "";
+
+// tijdstip van de meting: "2026-11-25T13:50:00", Nederlandse tijd zonder
+// zone; zonder bruikbaar tijdstip geldt het moment van ophalen
+function measured(ts) {
+	const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(ts || ""));
+	if (!m) return Date.now();
+	return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]).getTime();
+}
+
+async function fetchStationTemp(loc) {
+	const key = loc.lat.toFixed(2) + "," + loc.lon.toFixed(2);
+	if (tempBusy || (tempFor === key && Date.now() - tempTried < TEMP_EVERY)) return;
+	tempBusy = true; tempTried = Date.now(); tempFor = key;
+	try {
+		const r = await retoon.fetch(TEMP_URL, { timeout: 30 });
+		if (r.status !== 200) throw new Error("HTTP " + r.status);
+		const list = ((JSON.parse(r.text).actual || {}).stationmeasurements) || [];
+		let best = null;
+		for (const st of list) {
+			const t = +st.temperature, la = +st.lat, lo = +st.lon;
+			if (st.temperature == null || !isFinite(t) || !isFinite(la) || !isFinite(lo)) continue;
+			const at = measured(st.timestamp);
+			if (Date.now() - at > 45 * 60 * 1000) continue;	// station meldt niet meer: volgende
+			// afstand in km (vlakke benadering, ruim nauwkeurig genoeg voor NL)
+			const dx = (lo - loc.lon) * 111.32 * Math.cos(loc.lat * Math.PI / 180);
+			const dy = (la - loc.lat) * 110.57;
+			const km = Math.sqrt(dx * dx + dy * dy);
+			if (!best || km < best.km)
+				best = { temp: t, name: String(st.stationname || "").replace(/^Meetstation\s+/i, ""), km, at };
+		}
+		if (!best) throw new Error("geen stations met temperatuur");
+		station = best;
+		retoon.update();
+	} catch (e) {
+		retoon.log("temperatuur: " + e.message);	// tussen 0 en 1 uur ontbreken de metingen soms
+	} finally {
+		tempBusy = false;
+	}
+}
+
 async function fetchRain() {
 	if (timer) { clearTimeout(timer); timer = null; }
 	const loc = await location();
@@ -120,6 +165,9 @@ async function fetchRain() {
 		timer = setTimeout(load, RETRY);
 		return;
 	}
+	// temperatuur alleen van Buienradar als er geen eigen sensor gekozen is;
+	// los van de regen, zodat die er niet op hoeft te wachten
+	if (!S().tempSensor && S().tempBuienradar) fetchStationTemp(loc);
 	// andere locatie dan de getoonde gegevens: oude grafiek weg
 	if (where && (where.lat !== loc.lat || where.lon !== loc.lon)) rain = [];
 	const q = "?lat=" + loc.lat.toFixed(2) + "&lon=" + loc.lon.toFixed(2);
@@ -376,21 +424,45 @@ function drawGraph(el, x, y, w, h, big) {
 	el.box({ x: nx - 1, y, w: 2, h: gh, bg: "accent", opacity: 0.8 });
 }
 
+// buitentemperatuur, bijv. "7,4 °C": van de gekozen sensor, anders van het
+// dichtstbijzijnde Buienradar-station; "– °C" als de sensor geen waarde
+// geeft; leeg als er niets te tonen is
+function outsideTemp() {
+	const id = S().tempSensor;
+	if (id) {
+		const st = retoon.state(id);
+		if (!st || !isFinite(st.value)) return "– °C";
+		return st.value.toFixed(1).replace(".", ",") + " " + (st.unit || "°C");
+	}
+	if (!S().tempBuienradar || !station) return "";
+	// meting ouder dan 45 minuten (station meldt niet meer): niet tonen
+	if (Date.now() - station.at > 45 * 60 * 1000) return "";
+	return station.temp.toFixed(1).replace(".", ",") + " °C";
+}
+
 // kopregel; op smalle kaarten kortere tekst, kleinere letter, geen plaatsnaam
 function header(el, big) {
 	const narrow = !big && el.width < 380;
 	const tiny = !big && el.width < 300;
-	const s = summary(narrow);
+	const temp = outsideTemp();
+	// met temperatuur rechtsboven op de kaart: korte tekst, zodat ze elkaar niet raken
+	const s = summary(narrow || (!big && !!temp));
 	const icon = s.kind === "rain" ? "mdi:weather-pouring" : s.kind === "soon" ? "mdi:weather-partly-rainy"
 		: s.kind === "dry" ? "mdi:weather-cloudy" : "mdi:radar";
 	const col = s.kind === "rain" ? COLORS.matig : s.kind === "soon" ? "warn" : s.kind === "dry" ? "ok" : "muted";
 	el.icon(icon, { x: 0, y: 0, size: big ? "big" : "mid", color: col });
-	el.text(s.text, { x: big ? 60 : 44, y: tiny ? 8 : 4, font: big ? "mid" : tiny ? "small" : narrow ? "body" : "head",
+	// op het grote scherm staat rechtsboven de sluitknop: daar komt de
+	// temperatuur direct achter de verwachting
+	const text = big && temp ? s.text + "   |   " + temp : s.text;
+	el.text(text, { x: big ? 60 : 44, y: tiny ? 8 : 4, font: big ? "mid" : tiny ? "small" : narrow ? "body" : "head",
 		color: s.kind === "none" && error ? "bad" : "text" });
+	if (big) return;
+	// kaart: temperatuur rechtsboven, plaatsnaam (als aangevinkt) eronder
+	if (temp)
+		el.text(temp, { x: 0, y: tiny ? 8 : 4, align: "top-right", font: tiny ? "small" : narrow ? "body" : "head" });
 	const place = S().place || (where ? shortName(where.name) : "");
-	// plaatsnaam alleen als aangevinkt, en alleen op de kaart: op het grote
-	// scherm staat rechtsboven de sluitknop, en de locatie staat daar onderaan
-	if (S().showPlace && place && !narrow && !big) el.text(place, { x: 0, y: 0, align: "top-right", font: "small", color: "muted" });
+	if (S().showPlace && place && !narrow)
+		el.text(place, { x: 0, y: temp ? 28 : 0, align: "top-right", font: "small", color: "muted" });
 }
 
 function drawTile(el) {
@@ -414,7 +486,13 @@ function drawScreen(el) {
 	if (where) {
 		const loc = (where.name || where.src) + " (" + where.lat.toFixed(2).replace(".", ",") + " / " +
 			where.lon.toFixed(2).replace(".", ",") + ")";
-		el.text("Locatie: " + loc, { x: 0, y: -26, align: "bottom-left", font: "small", color: "muted" });
+		let src = "";
+		if (S().tempSensor) {
+			const st = retoon.state(S().tempSensor);
+			src = "     Temperatuur: " + ((st && st.name) || S().tempSensor);
+		}
+		else if (station && outsideTemp()) src = "     Temperatuur: station " + station.name + " (" + Math.round(station.km) + " km)";
+		el.text("Locatie: " + loc + src, { x: 0, y: -26, align: "bottom-left", font: "small", color: "muted" });
 	}
 	el.text(info, { x: 0, y: 0, align: "bottom-left", font: "small", color: error ? "bad" : "muted" });
 }
@@ -422,10 +500,21 @@ function drawScreen(el) {
 // ---- start -------------------------------------------------------------------
 retoon.tile(drawTile);
 retoon.screen(drawScreen);
-retoon.onSettings(() => load());
+// zone.home (locatie Thuis) en de temperatuursensor bijhouden; een nieuwe
+// watch-aanroep vervangt de lijst, dus na een gewijzigde instelling opnieuw
+function watchEntities() {
+	const ids = ["zone.home"];
+	if (S().tempSensor) ids.push(S().tempSensor);
+	retoon.watch(ids, id => {
+		if (id === "zone.home") { if (!rain.length && !loading) load(); }
+		else retoon.update();
+	});
+}
+
+retoon.onSettings(() => { watchEntities(); load(); });
 
 // locatie Thuis volgen: als die later binnenkomt (HA-verbinding), alsnog laden
-retoon.watch(["zone.home"], () => { if (!rain.length && !loading) load(); });
+watchEntities();
 
 // elke minuut opnieuw tekenen, zodat nu-lijn en samenvatting meeschuiven
 setInterval(() => retoon.update(), 60 * 1000);
