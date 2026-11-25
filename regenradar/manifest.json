@@ -1,7 +1,7 @@
 {
 	"id": "regenradar",
 	"name": "Regenradar",
-	"version": "1.10.1",
+	"version": "1.10.4",
 	"api": 2,
 	"main": "main.js",
 	"description": "Neerslagverwachting voor de komende 2 uur per 5 minuten (Buienradar), als grafiek met regenzwaarte, zoals de regenapp van de oude Toon.",
@@ -13,8 +13,9 @@
 		{ "key": "place", "label": "Naam op de kaart (leeg = plaatsnaam van de locatie)", "type": "text", "default": "" },
 		{ "key": "latitude", "label": "Of breedtegraad, bijv. 52.26 (alleen als Locatie leeg is)", "type": "number", "default": 0 },
 		{ "key": "longitude", "label": "Of lengtegraad, bijv. 5.61 (alleen als Locatie leeg is)", "type": "number", "default": 0 },
-		{ "key": "tempBuienradar", "label": "Buitentemperatuur tonen (van het dichtstbijzijnde Buienradar-weerstation)", "type": "bool", "default": true },
-		{ "key": "tempSensor", "label": "Of eigen temperatuursensor uit Home Assistant (gaat voor Buienradar)", "type": "entity", "units": ["°C"], "default": "" },
+		{ "key": "tempBuienradar", "label": "Buitentemperatuur van Buienradar tonen (dichtstbijzijnde weerstation)", "type": "bool", "default": false },
+		{ "key": "tempSensor", "label": "Of eigen temperatuursensor uit Home Assistant (wordt getoond zodra gekozen, gaat voor Buienradar)", "type": "entity", "units": ["°C"], "default": "" },
 		{ "key": "threshold", "label": "Regen vanaf (mm/u)", "type": "number", "default": 0.1 }
 	]
 }
+
