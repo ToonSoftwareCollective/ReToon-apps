@@ -18,4 +18,3 @@
 		{ "key": "threshold", "label": "Regen vanaf (mm/u)", "type": "number", "default": 0.1 }
 	]
 }
-
