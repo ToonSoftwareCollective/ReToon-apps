@@ -116,6 +116,14 @@ const TEMP_EVERY = 10 * 60 * 1000;	// stations meten elke 10 minuten
 let station = null;	// { temp, name, km, at, lat, lon }: laatst gelezen station
 let tempBusy = false, tempTried = 0, tempFor = "";
 
+// tijdstip van de meting: "2026-11-25T13:50:00", Nederlandse tijd zonder
+// zone; zonder bruikbaar tijdstip geldt het moment van ophalen
+function measured(ts) {
+	const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(ts || ""));
+	if (!m) return Date.now();
+	return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]).getTime();
+}
+
 async function fetchStationTemp(loc) {
 	const key = loc.lat.toFixed(2) + "," + loc.lon.toFixed(2);
 	if (tempBusy || (tempFor === key && Date.now() - tempTried < TEMP_EVERY)) return;
@@ -128,12 +136,14 @@ async function fetchStationTemp(loc) {
 		for (const st of list) {
 			const t = +st.temperature, la = +st.lat, lo = +st.lon;
 			if (st.temperature == null || !isFinite(t) || !isFinite(la) || !isFinite(lo)) continue;
+			const at = measured(st.timestamp);
+			if (Date.now() - at > 45 * 60 * 1000) continue;	// station meldt niet meer: volgende
 			// afstand in km (vlakke benadering, ruim nauwkeurig genoeg voor NL)
 			const dx = (lo - loc.lon) * 111.32 * Math.cos(loc.lat * Math.PI / 180);
 			const dy = (la - loc.lat) * 110.57;
 			const km = Math.sqrt(dx * dx + dy * dy);
 			if (!best || km < best.km)
-				best = { temp: t, name: String(st.stationname || "").replace(/^Meetstation\s+/i, ""), km, at: Date.now() };
+				best = { temp: t, name: String(st.stationname || "").replace(/^Meetstation\s+/i, ""), km, at };
 		}
 		if (!best) throw new Error("geen stations met temperatuur");
 		station = best;
@@ -157,7 +167,7 @@ async function fetchRain() {
 	}
 	// temperatuur alleen van Buienradar als er geen eigen sensor gekozen is;
 	// los van de regen, zodat die er niet op hoeft te wachten
-	if (!S().tempSensor && S().tempBuienradar !== false) fetchStationTemp(loc);
+	if (!S().tempSensor && S().tempBuienradar) fetchStationTemp(loc);
 	// andere locatie dan de getoonde gegevens: oude grafiek weg
 	if (where && (where.lat !== loc.lat || where.lon !== loc.lon)) rain = [];
 	const q = "?lat=" + loc.lat.toFixed(2) + "&lon=" + loc.lon.toFixed(2);
@@ -414,7 +424,6 @@ function drawGraph(el, x, y, w, h, big) {
 	el.box({ x: nx - 1, y, w: 2, h: gh, bg: "accent", opacity: 0.8 });
 }
 
-// kopregel; op smalle kaarten kortere tekst, kleinere letter, geen plaatsnaam
 // buitentemperatuur, bijv. "7,4 °C": van de gekozen sensor, anders van het
 // dichtstbijzijnde Buienradar-station; "– °C" als de sensor geen waarde
 // geeft; leeg als er niets te tonen is
@@ -425,11 +434,13 @@ function outsideTemp() {
 		if (!st || !isFinite(st.value)) return "– °C";
 		return st.value.toFixed(1).replace(".", ",") + " " + (st.unit || "°C");
 	}
-	if (S().tempBuienradar === false || !station) return "";
-	if (Date.now() - station.at > 45 * 60 * 1000) return "";	// te oud
+	if (!S().tempBuienradar || !station) return "";
+	// meting ouder dan 45 minuten (station meldt niet meer): niet tonen
+	if (Date.now() - station.at > 45 * 60 * 1000) return "";
 	return station.temp.toFixed(1).replace(".", ",") + " °C";
 }
 
+// kopregel; op smalle kaarten kortere tekst, kleinere letter, geen plaatsnaam
 function header(el, big) {
 	const narrow = !big && el.width < 380;
 	const tiny = !big && el.width < 300;
@@ -476,7 +487,10 @@ function drawScreen(el) {
 		const loc = (where.name || where.src) + " (" + where.lat.toFixed(2).replace(".", ",") + " / " +
 			where.lon.toFixed(2).replace(".", ",") + ")";
 		let src = "";
-		if (S().tempSensor) src = "     Temperatuur: " + S().tempSensor;
+		if (S().tempSensor) {
+			const st = retoon.state(S().tempSensor);
+			src = "     Temperatuur: " + ((st && st.name) || S().tempSensor);
+		}
 		else if (station && outsideTemp()) src = "     Temperatuur: station " + station.name + " (" + Math.round(station.km) + " km)";
 		el.text("Locatie: " + loc + src, { x: 0, y: -26, align: "bottom-left", font: "small", color: "muted" });
 	}
